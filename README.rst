@@ -1,7 +1,7 @@
 RNA-Mutect2
 =======================================================
 
-The RNA-Mutect2 pipeline is a scalable and efficient analysis pipeline for RNA somatic mutation detection from RNA-WES(tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and ML-filter model to maximize precision & recall. It runs highly automated once snakemake and related-codes get configurated properly. It reports aggregated mutation file (maf format) for given cases to facilitate downstream analysis. 
+The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutation detection from RNA-WES(tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and multi-filtering strategy & Machine-learning based model to maximize precision & recall. It runs highly automated once snakemake and related configs & infos get configurated properly. It reports an aggregated mutation file (maf format) to facilitate downstream analysis. 
 
 Pre-requirements
 ~~~~~~~~~~~~~~~~~
@@ -11,7 +11,7 @@ Download codes
 
 .. code:: sh
     
-  git clone https://github.com/longqh3/Machine-learning-based-RNA-somatic-mutation-detection
+  git clone https://github.com/longqh3/RNA-SSNV
 
 Softwares
 ----------
@@ -155,7 +155,7 @@ Resource files
 P.S. Train your own discriminant model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Although we used 511 cases of TCGA LUAD RNA-WES paired data to train our discriminant model, other non-cancerous RNA somatic mutations may exhibit **different patterns of FP calls**. In that case, our model may not served as expected, and a customized model was required to be trained on your own.
+Although we used 511 cases of TCGA LUAD RNA-WES paired data to train our discriminant model, other non-cancerous RNA somatic mutations or non-bulk RNA-Seq data may exhibit **different patterns of FP calls**. In that case, our model may not served as expected, and a customized model was required to be trained on your own.
 
 Data-preparation
 --------------------
