@@ -4,11 +4,11 @@
 # python /home/lqh/Codes/Python/RNA-SSNV/model_utilize.py \
 # --REDIportal /home/lqh/resources/database/RNA_edit/REDIportal/REDIportal_main_table.hg38.bed \
 # --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
-# --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+# --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
 # --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.model \
 # --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.one_hot_encoder \
 # --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
-# --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.table
+# --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table
 
 # 导入相关需求包
 # 基础包

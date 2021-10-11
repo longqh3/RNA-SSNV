@@ -18,8 +18,8 @@
 
 # python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
 # --step 2 \
-# --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon_updated_force_call.txt \
-# --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.table \
+# --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
+# --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC_DNA_step_1.class \
 # --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.model \
 # --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.one_hot_encoder \
 # --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
@@ -238,11 +238,11 @@ class data_prepare():
         print(f"{cancer_type}所对应的驱动基因集合获取完成，共计{len(self.cancer_spec_driver_genes)}个驱动基因，名称为cancer_spec_driver_genes")
 
     # 获取预测模型相关所有信息，并储存于实例对象当中
-    def model_predict_interpret_prepare(self, one_hot_encoder_loc, RF_model_loc, training_col_loc):
+    def model_predict_interpret_prepare(self, RF_model_loc, one_hot_encoder_loc, training_col_loc):
         print("开始读取预测模型相关所有信息...")
         # 读取one-hot编码模型、机器学习模型、训练数据列名
         f1, f2 = open(one_hot_encoder_loc, 'rb'), open(RF_model_loc, 'rb')
-        self.enc, self.rf_gcv = pickle.load(f1), pickle.load(f2)
+        self.enc, self.rf_gcv = joblib.load(f1), joblib.load(f2)
         f1.close()
         f2.close()
         self.training_col = pd.read_table(training_col_loc)["0"]
@@ -326,7 +326,7 @@ class data_prepare():
 
     # 工具函数8：恢复本地数据分析类
     def unpickle(self, instance_path):
-        with open(instance_path, 'wb') as f:
+        with open(instance_path, 'rb') as f:
             return pickle.load(f)
 
 # 根据所提供的信息来完成RNA与DNA信息的完全整合
@@ -565,7 +565,7 @@ class model_analyze_with_DNA(object):
         print(f"\n汇总DNA、RNA所有突变信息的汇总表final_info构建完成！包含{len(self.final_info)}个突变对应信息")
         print("主标签：Tag——RNA_DNA_overlap, RNA_only, DNA_only")
         print("子标签：Sub_Tag——non_SNP, force_called, force_call_failed")
-        print("概率值：Predicted_prob；预测标签：Predicted_label")
+        print("概率值：pred_prob；预测标签：pred_label")
 
 
     # 工具函数1：提取pysam对象列表中相应信息
