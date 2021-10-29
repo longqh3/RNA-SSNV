@@ -398,67 +398,45 @@ class exon_RNA_analysis(object):
         print("Precision Score (how much of TPs, which were predicted as 'TP', were actually 'TP'): ",
               precision_score(self.y_holdout, rf_predicted))  # precision
 
-    # 输入：实例新建的属性rf_gcv、scaler，代表经过网格搜索所得到的最优RF模型、标准化工具
-    # 输出：保存相应模型+工具
     def common_RF_save(self, model_folder_path):
-        # 判断模型文件夹是否存在
+        """Save trained model, one-hot encoder and features used in training.
+
+        :param model_folder_path: Folder path to store saved model.
+        """
+
         if not os.path.exists(model_folder_path):
-            os.mkdir(model_folder_path)
-        # 保存当前最佳模型
+            os.mkdir(model_folder_path)  # new folder
         with open(os.path.join(model_folder_path, self.__class__.__name__ + '.model'), 'wb') as f:
-            joblib.dump(self.rf_gcv.best_estimator_, f, compress=3)
-        # 保存当前one-hot-encoder工具
+            joblib.dump(self.rf_gcv.best_estimator_, f, compress=3)  # save model
         with open(os.path.join(model_folder_path, self.__class__.__name__ + '.one_hot_encoder'), 'wb') as f:
-            joblib.dump(self.enc, f)
-        # 保存当前用以训练的列名信息
-        pd.DataFrame(pd.Series(self.training_data.columns)).to_csv(os.path.join(model_folder_path, self.__class__.__name__ + '.training_data_col'), index=False)
-
-    # 工具函数1：对训练数据进行处理，基于本身数据建立新特征
-    def new_feature_constructor(self, data_info):
-        # 2021.08.17
-        # 建立Read Orientation Artifact相关的新特征（F1R2或F2R1的最大占比）并加以检查
-        # 工具函数
-        def F1R2_F2R1_tumor_alt_ratio_construct(x):
-            # F1R2和F2R1之和为0时，比例直接为1（经过随机筛选验证所得）
-            if (x['F1R2_tumor'] + x['F2R1_tumor']==0):
-                return 1
-            else:
-                if x['F1R2_tumor'] > x['F2R1_tumor']:
-                    return(x['F1R2_tumor'] / (x['F1R2_tumor'] + x['F2R1_tumor']))
-                else:
-                    return(x['F2R1_tumor'] / (x['F1R2_tumor'] + x['F2R1_tumor']))
-
-        # 正式运行
-        print("根据F1R2、F2R1信息建立Read Orientation Artifact相关的新特征——F1R2_F2R1_tumor_alt_ratio")
-        data_info['F1R2_F2R1_tumor_alt_ratio'] = data_info.apply(F1R2_F2R1_tumor_alt_ratio_construct, axis=1)
-
-        return data_info
+            joblib.dump(self.enc, f)  # save encoder
+        pd.DataFrame(pd.Series(self.training_data.columns)).to_csv(os.path.join(model_folder_path, self.__class__.__name__ + '.training_data_col'), index=False)  # save features
 
 if __name__ == '__main__':
-    # 获取模型训练所需数据文件
+    # read in all required files
     all_info = pd.read_table(args.raw_RNA_mutations)
     GDC_info = pd.read_table(args.GDC_mutations)
     WES_info = pd.read_table(args.WES_mutations)
     RNA_EDIT_INFO = RNA_EDIT_process(args.REDIportal, args.DARNED)
     num_threads = args.num_threads
 
-    # 初始化所有训练数据
+    # init model training process
     common_RF_exon = exon_RNA_analysis(all_info, GDC_info, WES_info, RNA_EDIT_INFO, num_threads)
 
-    # 检查TP、TN分布情况
+    # check TP, TN distribution
     common_RF_exon.data_check()
 
-    # 检查是否有NaN值存在干扰模型构建
+    # check na value and prepare data
     common_RF_exon.data_preprocess()
 
-    # 进行数据分割——train_test_split
+    # split data into training and testing datasets
     common_RF_exon.data_prepare()
 
-    # 构建加权随机森林模型WRF
+    # train weighted random forest model
     common_RF_exon.common_RF_build()
 
-    # 获取对应P-R信息
+    # retrieve P-R info
     common_RF_exon.common_RF_tuning_PR()
 
-    # 保存所得模型
+    # save trained model
     common_RF_exon.common_RF_save(args.model_folder_path)
