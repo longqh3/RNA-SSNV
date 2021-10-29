@@ -323,5 +323,6 @@ rule VariantsToTable_SNP_WES_interval_exon:
          gatk VariantsToTable \
          -V {input.vcf} \
          -F CHROM -F POS -F REF -F ALT \
+         --show-filtered true \
          -O {output.table}
          """

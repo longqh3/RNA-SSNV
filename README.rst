@@ -1,4 +1,4 @@
-RNA-Mutect2
+RNA-SSNV
 =======================================================
 
 The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutation detection from RNA-WES(tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and multi-filtering strategy & Machine-learning based model to maximize precision & recall. It runs highly automated once snakemake and related configs & infos get configurated properly. It reports an aggregated mutation file (maf format) to facilitate downstream analysis. 
@@ -65,36 +65,75 @@ Modify entry shell scripts
 
 - *scripts/project_RNA_somatic-tsv-qsub.sh*: shell script as entry command for whole project, modify it accordingly (support PBS task management system).
 
-Change interval files
+Select interval files
 ---------------------
 
 - *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets, canonical for TCGA projects. (change it with your own WES target interval file)
 - *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. (change it with your own exon regions of interest)
 
+  All interval files should be *bed* format and contain column names for "*chr*  *start* *end*". 
+
 Run Pipeline
 ~~~~~~~~~~~~~~~
 
-Once configurated correctly, our pipeline is ready to go. Please execute the following commands line by line, make sure everything works fine before moving forward. 
+Once configurated correctly, our pipeline is ready to go. Please execute the following commands step by step, make sure everything works normally before moving forward. 
+
+Call raw RNA somatic mutations
+-------------------------------
 
 .. code:: sh
     
-    # dry run to see if everything works
+    # dry run to see if the mutatin calling pipeline works
     snakemake --cores num_of_cores \
-    -s rules/RNA-Somatic-tsv-Snakefile.smk \
-    --configfile configs/LUAD_RNA_Somatic_config.yaml \
-    -n
+    -ns rules/RNA-Somatic-tsv-Snakefile.smk \
+    --configfile configs/project_RNA_Somatic_config.yaml
     # run the pipeline
     snakemake --cores num_of_cores \
     -s rules/RNA-Somatic-tsv-Snakefile.smk \
-    --configfile configs/LUAD_RNA_Somatic_config.yaml
-    # run feature-extraction codes
-    python codes/4_10_newest_validation_vcf_info_retriver_tsv.py
+    --configfile configs/project_RNA_Somatic_config.yaml
     # run model-discriminant codes
-    python codes/new_function_based_RNA_somatic_random_forest_exon_analysis.py
-    # run downstream analysis
-    R cancer_survival_analysis.R
+    python model_utilize.py
 
 Beware, owing to the breakpoint-run feature of snakemake, our pipeline also supports taking any final files (listed below) as starting point. 
+
+Prepare features for raw RNA somatic mutations
+-----------------------------------------------
+
+.. code:: py
+
+    # run feature-extraction codes
+    python lib/own_data_vcf_info_retriver.py \
+    --cancer_type BLCA \
+    --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
+    --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
+    --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
+    --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+    --num_threads 60
+
+Predict reliable RNA somatic mutations
+------------------------------------------
+
+.. code:: py
+
+    # run model predicting codes
+    python /home/lqh/Codes/Python/RNA-SSNV/model_utilize.py \
+    --REDIportal /home/lqh/resources/database/RNA_edit/REDIportal/REDIportal_main_table.hg38.bed \
+    --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
+    --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+    --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
+    --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
+    --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
+    --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table
+
+Pairwise analysis for DNA and RNA somatic mutations (with DNA evidence)
+---------------------------------------------------------------------------------
+
+Step 1: Generate RNA-omitted DNA mutations to force-call
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+
 
 Output folders & files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

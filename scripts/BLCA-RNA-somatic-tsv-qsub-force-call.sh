@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N LUSC_RNA_force_call@pan02_1day
+#PBS -N BLCA_RNA_force_call@pan02_1day
 #PBS -l nodes=pan02:ppn=40
 #PBS -l mem=400G
 #PBS -q default
@@ -8,6 +8,6 @@
 
 # 一般一个原始测序数据的bam文件
 snakemake --cores 80 \
--ns /home/lqh/Codes/Python/RNA-SSNV/rules/RNA-Somatic-tsv-Snakefile-force-call.smk \
---configfile /home/lqh/Codes/Python/RNA-SSNV/configs/LUSC_RNA_Somatic_config_force_call.yaml \
+-s /home/lqh/Codes/Python/RNA-SSNV/rules/RNA-Somatic-tsv-Snakefile-force-call.smk \
+--configfile /home/lqh/Codes/Python/RNA-SSNV/configs/BLCA_RNA_Somatic_config_force_call.yaml \
 --rerun-incomplete

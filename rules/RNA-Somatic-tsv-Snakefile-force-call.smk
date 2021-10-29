@@ -43,26 +43,15 @@ rule all:
 
 rule SortVcf:
     input:
-        force_call_vcf = "RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check/{case_id}.vcf"
+        force_call_vcf = "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check/{case_id}.vcf"
     output:
-        force_call_vcf_sorted = "RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check_sorted/{case_id}.vcf"
+        force_call_vcf_sorted = "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check_sorted/{case_id}.vcf"
     shell:
         """
          gatk SortVcf \
          -I {input.force_call_vcf} \
          -O {output.force_call_vcf_sorted}
         """
-
-# rule IndexFeatureFile:
-#     input:
-#         force_call_vcf = "RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check/{case_id}.vcf"
-#     output:
-#         force_call_vcf_index = "RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check/{case_id}.vcf.idx"
-#     shell:
-#         """
-#          gatk IndexFeatureFile \
-#          -I {input.force_call_vcf}
-#         """
 
 # takes 22h
 # cores 2
@@ -80,7 +69,7 @@ rule Mutect2:
                                         tumor_aliquots_id = tumor_samples.loc[tumor_samples["case_id"]==wildcards.case_id, ].index),
         normal_bams = lambda wildcards : [os.path.join(config["normalSampleDir"],normal_samples["file_id"][normal_aliquots_id],normal_samples["file_name"][normal_aliquots_id])
                                         for normal_aliquots_id in normal_samples.loc[normal_samples["case_id"]==wildcards.case_id, ].index],
-        force_call_vcf_sorted = "RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check_sorted/{case_id}.vcf"
+        force_call_vcf_sorted = "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check_sorted/{case_id}.vcf"
     output:
         vcf = protected("RNA_somatic_mutation/Mutect2_new_force_call/{case_id}.vcf.gz"),
         f1r2 = protected("RNA_somatic_mutation/Mutect2_new_force_call/{case_id}.f1r2.tar.gz"),

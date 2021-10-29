@@ -1,3 +1,13 @@
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/own_data_vcf_info_retriver_with_DNA_bam.py \
+# --cancer_type GBM \
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_RNA_somatic_calling_info.tsv \
+# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
+# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
+# --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
+# --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
+# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+# --num_threads 40
+
 # 特征提取核心代码
 # 提取待分析的文件夹内所有突变vcf文件中的所有位点
 # 以文件为单位，获取每个case中的所有位点信息 + 30 features取值
@@ -15,11 +25,28 @@ import pysam
 import traceback
 import collections
 
+import argparse
+
+# description参数可以用于描述脚本的参数作用，默认为空
+parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+# parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
+# Generic parameter
+parser.add_argument('--cancer_type', help='Cancer type for current study')
+parser.add_argument("--RNA_calling_info", help="Tabular info for RNA somatic mutation calling.")
+parser.add_argument("--DNA_calling_info", help="Tabular info for DNA somatic mutation calling.")
+parser.add_argument('--DNA_tumor_folder', help='DNA tumor bam folder path.')
+parser.add_argument('--project_folder', help='Project folder path.')
+parser.add_argument('--exon_interval', help='GENCODE v22 exon interval bed file.')
+parser.add_argument("--output_table_path", help="Path for final output table.")
+parser.add_argument('--num_threads', '-nt', type=int, help='Number of threads allowed.')
+
+args=parser.parse_args()
+
 # 主要处理函数
 # 输入信息
 # tumor_tsv：用以获取当前的case对应的其他相关信息（如配对正常样本信息等）
 # 对于每个case id对应的vcf文件，进行文件信息提取，并将获取的相应feature信息保存至指定文件夹内
-def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path, Exon_loc, funcotator_folder_path):
+def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path, DNA_tumor_tsv, DNA_tumor_folder_path, Exon_loc, funcotator_folder_path):
     """Retrieve all features based on given case_id.
 
     Retrieve specific case_id's vcf-related, tumor-DNA-bam-related, annotation-related and other-related (exon distance, etc) features.
@@ -86,21 +113,27 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
                      'MPOS', 'NALOD', 'NLOD', 'POPAF', 'SEQQ', 'STRANDQ', 'TLOD',
                      'ref_AD_tumor_RNA', 'alt_AD_tumor_RNA',
                      'ref_AD_normal', 'alt_AD_normal',
+                     'ref_AD_tumor_DNA', 'alt_AD_tumor_DNA',
                      'AF_tumor', 'AF_normal',
                      'DP_tumor', 'DP_normal',
                      'F1R2_tumor', 'F1R2_normal',
                      'F2R1_tumor', 'F2R1_normal',
-                     'AD_other_RNA_tumor', 'AD_other_normal',
+                     'AD_other_RNA_tumor', 'AD_other_normal', 'AD_other_DNA_tumor',
                      'transcript_ID', 'exon_distance',
                      'record_filter',
                      "FS",
                      "SOR", "ROQ"]
-        # 添加GENCODE v22版本对应exon结构信息 + Funcotator注释信息
+        # 添加DNA tumor bam的测序深度/覆盖度信息，便于检查相应RNA体细胞突变位点在DNA上的覆盖度是否足够、是否亦显示突变
+        # 首先取得case_id在DNA_tumor_tsv中所对应的所有DNA tumor bam文件路径
+        DNA_tumor_case_df = DNA_tumor_tsv.loc[(DNA_tumor_tsv['case_id'] == case_id) & (DNA_tumor_tsv['sample_type'] == "Primary Tumor"), ['file_id', 'file_name', 'aliquots_id']]
+        DNA_tumor_case_file_paths = DNA_tumor_folder_path + "/" + DNA_tumor_case_df['file_id'] + "/" + DNA_tumor_case_df['file_name']
+        # 应用pysam打开所有case_id对应的DNA tumor bam文件，并将对应的pysam对象存放于列表中
+        samfile_list = [pysam.AlignmentFile(DNA_tumor_case_file_path, "rb") for DNA_tumor_case_file_path in DNA_tumor_case_file_paths]
 
         # 读取GENCODE v22所对应的exon区间信息，建立以chromosome为key的exon dict对象存储exon区间信息
         exon_region_dict = Exon_region_create(Exon_loc)
         # 对case内的每个record进行分析，获取其基本信息+特征
-        all_record_list = [record_select(single_record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id, exon_region_dict) for single_record in vcf_record_list]
+        all_record_list = [record_select(single_record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id, samfile_list, exon_region_dict) for single_record in vcf_record_list]
         # 汇总分离后的record
         all_record_df = pd.DataFrame(all_record_list, columns=col_names)
 
@@ -112,7 +145,7 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
                                                                                                                "HGNC_Ensembl_Gene_ID", "gc_content", "COSMIC_total_alterations_in_gene", "ref_context",
                                                                                                                "Strand", "Transcript_Strand", "Codon_Change", "Protein_Change", "DrugBank"]]
         # 2021.9.2 基于位置信息进行去重，保证multi-allelic处理过程中不出错（暂时注释掉）
-        # case_funcotator_df = case_funcotator_df.drop_duplicates(subset=["Chromosome", "Start_Position", "Reference_Allele"], keep='first', inplace=False)
+        case_funcotator_df = case_funcotator_df.drop_duplicates(subset=["Chromosome", "Start_Position", "Reference_Allele"], keep='first', inplace=False)
         all_record_df = all_record_df.merge(case_funcotator_df, on=["Chromosome", "Start_Position", "Reference_Allele"], how="left")
 
         # 导出case table文件至对应文件夹中
@@ -128,7 +161,7 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
 # 其实这里也是偷懒，为了避免不同特征间合并起来的困难而在一个函数中进行
 # 选择vcf文件中单个record内RNA肿瘤样本var最大AD、正常样本ref最大AD
 # 同时选择DNA肿瘤样本var、ref最大AD和exon-distance来作为feature，共同组成dataframe
-def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id, exon_region_dict):
+def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id, samfile_list, exon_region_dict):
     """Retrieve all features based on given case_id.
 
     Retrieve specific vcf record's vcf-related, tumor-DNA-bam-related and other-related (exon distance, etc) features.
@@ -163,6 +196,10 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
                                for single_tumor_aliquots_id in RNA_tumor_aliquots_id.drop(high_tumor_AD_aliquots_id)])
         AD_other_normal = ";".join(["/".join([str(record.genotype(single_normal_aliquots_id).data.AD[0]), str(record.genotype(single_normal_aliquots_id).data.AD[1])])
                                for single_normal_aliquots_id in DNA_normal_aliquots_id.drop(high_normal_AD_aliquots_id)])
+
+        # bam-contained multiple cases' info retrieve
+        # 获得DNA tumor的最佳ref、alt和其他DNA tumor样本的碱基覆盖度信息
+        AD_DNA_tumor_ref, AD_DNA_tumor_alt, AD_other_DNA_tumor = DNA_tumor_bam_record_retrive(record, samfile_list)
 
         # other related info: exon distance
         # 获得GENCODE v22所对应的exon区间位置信息
@@ -201,11 +238,12 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
                         record.INFO['POPAF'][0], record.INFO['SEQQ'], record.INFO['STRANDQ'], record.INFO['TLOD'][0],
                         record.genotype(high_tumor_AD_aliquots_id).data.AD[0], record.genotype(high_tumor_AD_aliquots_id).data.AD[1],
                         record.genotype(high_normal_AD_aliquots_id).data.AD[0], record.genotype(high_normal_AD_aliquots_id).data.AD[1],
+                        AD_DNA_tumor_ref, AD_DNA_tumor_alt,
                         record.genotype(high_tumor_AD_aliquots_id).data.AF, record.genotype(high_normal_AD_aliquots_id).data.AF, # 存在形如[0.015, 0.005935]的AF值，而不报错的情况，通过强制类型转换来避免出错
                         record.genotype(high_tumor_AD_aliquots_id).data.DP, record.genotype(high_normal_AD_aliquots_id).data.DP,
                         record.genotype(high_tumor_AD_aliquots_id).data.F1R2[1], record.genotype(high_normal_AD_aliquots_id).data.F1R2[0],
                         record.genotype(high_tumor_AD_aliquots_id).data.F2R1[1], record.genotype(high_normal_AD_aliquots_id).data.F2R1[0],
-                        AD_other_tumor, AD_other_normal,
+                        AD_other_tumor, AD_other_normal, AD_other_DNA_tumor,
                         transcript_ID, exon_distance,
                         record_filter,
                         record.INFO['FS'],
@@ -233,6 +271,7 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
                         0, 0,
                         0, 0,
                         0, 0,
+                        0, 0, 0,
                         0, 0,
                         "PASS" if record.FILTER==[] else ",".join(record.FILTER),
                         record.INFO['FS'],
@@ -354,25 +393,26 @@ def Exon_region_record_retrive(record, exon_region_dict):
 
 
 if __name__ == '__main__':
-    CANCER_TYPE = "LUSC"
-
-    # 已进行Force-call操作的case信息
-    force_call_case_tsv = pd.read_table(f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/MAFToVCF/gdc_validate_all_info_DNA_only_RNA_missing_RNA_info_Mutect2_check/case_info.table")
+    CANCER_TYPE = args.cancer_type
 
     # Input（仅需要在此修改相关路径信息即可）
     # 包含有RNA tumor相关注释信息的tsv文件，通常为RNA体细胞突变检测对应信息列表文件
-    tumor_tsv = pd.read_table(f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/{CANCER_TYPE}_RNA_somatic_calling_info.tsv")
+    tumor_tsv = pd.read_table(args.RNA_calling_info)
     tumor_tsv['case_id'] = tumor_tsv['case_id'].astype(str)
+    # 包含有DNA call体细胞突变信息的tsv文件
+    DNA_tumor_tsv = pd.read_table(args.DNA_calling_info)
+    # 包含有DNA bam文件的文件夹路径
+    DNA_tumor_folder = args.DNA_tumor_folder
     # 存储该项目所有case的突变vcf文件的文件夹路径
-    vcf_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/FilterMutectCalls_new_force_call"
+    vcf_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval_exon")
     # TODO: 更新不同基因对应的exon structure信息
     # 根据UCSC数据库中GENCODE v22中的exon信息所构造的结构信息文件为/home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed
-    Exon_loc = "/home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed"
+    Exon_loc = args.exon_interval
     # 存储Funcotator注释后信息文件（完成对所有突变位点的注释）的文件夹路径
-    funcotator_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/Funcotator_new_force_call"
+    funcotator_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/Funcotator_new/SNP")
 
     # Output（修改相应路径信息即可）
-    table_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call"
+    table_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon")
     if not os.path.exists(table_folder_path):
         os.makedirs(table_folder_path)
     # 修改tumor_tsv行名
@@ -381,10 +421,10 @@ if __name__ == '__main__':
     all_vcf_info = pd.DataFrame()
     # 开始多进程处理
     print('Parent process %s.' % os.getpid())
-    p = Pool(64)
+    p = Pool(args.num_threads)
     # 遍历每一个case(直接用set()也可以= =)
-    for single_case_id in set(force_call_case_tsv["0"]):
-        p.apply_async(case_vcf_info_retrive, args=(tumor_tsv, single_case_id, vcf_folder_path, table_folder_path,
+    for single_case_id in tumor_tsv["case_id"].value_counts().index:
+        p.apply_async(case_vcf_info_retrive, args=(tumor_tsv, single_case_id, vcf_folder_path, table_folder_path, DNA_tumor_tsv, DNA_tumor_folder,
                                                    Exon_loc,
                                                    funcotator_folder_path))
     print('Waiting for all subprocesses done...')
@@ -392,6 +432,6 @@ if __name__ == '__main__':
     p.join()
     print('All subprocesses done.')
     # 汇总多进程处理后结果——本质上是对所提供vcf文件对应突变位点信息的集合汇总（因为本代码是基于每个突变vcf文件内的所有位点进行分析）
-    single_vcf_info_list = [pd.read_table(os.path.join(os.path.join(table_folder_path, single_case_id+".table"))) for single_case_id in set(force_call_case_tsv["0"])]
+    single_vcf_info_list = [pd.read_table(os.path.join(os.path.join(table_folder_path, single_case_id+".table"))) for single_case_id in tumor_tsv["case_id"].value_counts().index]
     all_vcf_info = pd.concat(single_vcf_info_list, ignore_index=True)
-    all_vcf_info.to_csv(f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt", sep="\t", index=False)
+    all_vcf_info.to_csv(f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt", sep="\t", index=False)

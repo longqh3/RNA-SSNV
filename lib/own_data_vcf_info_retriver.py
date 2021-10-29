@@ -1,3 +1,11 @@
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/own_data_vcf_info_retriver.py \
+# --cancer_type BLCA \
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
+# --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
+# --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
+# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+# --num_threads 60
+
 # 特征提取核心代码
 # 提取待分析的文件夹内所有突变vcf文件中的所有位点
 # 以文件为单位，获取每个case中的所有位点信息 + 30 features取值
@@ -14,6 +22,21 @@ from multiprocessing import Pool
 import pysam
 import traceback
 import collections
+
+import argparse
+
+# description参数可以用于描述脚本的参数作用，默认为空
+parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+# parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
+# Generic parameter
+parser.add_argument('--cancer_type', help='Cancer type for current study')
+parser.add_argument("--RNA_calling_info", help="Tabular info for RNA somatic mutation calling.")
+parser.add_argument('--project_folder', help='Project folder path.')
+parser.add_argument('--exon_interval', help='GENCODE v22 exon interval bed file.')
+parser.add_argument("--output_table_path", help="Path for final output table.")
+parser.add_argument('--num_threads', '-nt', type=int, help='Number of threads allowed.')
+
+args=parser.parse_args()
 
 # 主要处理函数
 # 输入信息
@@ -112,7 +135,7 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
                                                                                                                "HGNC_Ensembl_Gene_ID", "gc_content", "COSMIC_total_alterations_in_gene", "ref_context",
                                                                                                                "Strand", "Transcript_Strand", "Codon_Change", "Protein_Change", "DrugBank"]]
         # 2021.9.2 基于位置信息进行去重，保证multi-allelic处理过程中不出错（暂时注释掉）
-        # case_funcotator_df = case_funcotator_df.drop_duplicates(subset=["Chromosome", "Start_Position", "Reference_Allele"], keep='first', inplace=False)
+        case_funcotator_df = case_funcotator_df.drop_duplicates(subset=["Chromosome", "Start_Position", "Reference_Allele"], keep='first', inplace=False)
         all_record_df = all_record_df.merge(case_funcotator_df, on=["Chromosome", "Start_Position", "Reference_Allele"], how="left")
 
         # 导出case table文件至对应文件夹中
@@ -191,7 +214,7 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
         #              'record_filter',
         #              "FS",
         #              "SOR", "ROQ"]
-        tmp_vcf_info = [record.CHROM, record.POS, record.REF, record.ALT[0],
+        tmp_vcf_info = [record.CHROM, record.POS, record.REF, ",".join([str(alt) for alt in record.ALT]),
                         record.REF, case_id,
                         record.INFO['CONTQ'], record.INFO['DP'], record.INFO['ECNT'], record.INFO['GERMQ'],
                         record.INFO['MBQ'][0], record.INFO['MBQ'][1],
@@ -354,22 +377,22 @@ def Exon_region_record_retrive(record, exon_region_dict):
 
 
 if __name__ == '__main__':
-    CANCER_TYPE = "MegaColon_normal"
+    CANCER_TYPE = args.cancer_type
 
     # Input（仅需要在此修改相关路径信息即可）
     # 包含有RNA tumor相关注释信息的tsv文件，通常为RNA体细胞突变检测对应信息列表文件
-    tumor_tsv = pd.read_table("/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/megacolon_normal_RNA_calling_list.tsv")
+    tumor_tsv = pd.read_table(args.RNA_calling_info)
     tumor_tsv['case_id'] = tumor_tsv['case_id'].astype(str)
     # 存储该项目所有case的突变vcf文件的文件夹路径
-    vcf_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval_exon"
+    vcf_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval_exon")
     # TODO: 更新不同基因对应的exon structure信息
     # 根据UCSC数据库中GENCODE v22中的exon信息所构造的结构信息文件为/home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed
-    Exon_loc = "/home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed"
+    Exon_loc = args.exon_interval
     # 存储Funcotator注释后信息文件（完成对所有突变位点的注释）的文件夹路径
-    funcotator_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/Funcotator_new/SNP"
+    funcotator_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/Funcotator_new/SNP")
 
     # Output（修改相应路径信息即可）
-    table_folder_path = f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon"
+    table_folder_path = os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon")
     if not os.path.exists(table_folder_path):
         os.makedirs(table_folder_path)
     # 修改tumor_tsv行名
@@ -378,7 +401,7 @@ if __name__ == '__main__':
     all_vcf_info = pd.DataFrame()
     # 开始多进程处理
     print('Parent process %s.' % os.getpid())
-    p = Pool(44)
+    p = Pool(args.num_threads)
     # 遍历每一个case(直接用set()也可以= =)
     for single_case_id in tumor_tsv["case_id"].value_counts().index:
         p.apply_async(case_vcf_info_retrive, args=(tumor_tsv, single_case_id, vcf_folder_path, table_folder_path,

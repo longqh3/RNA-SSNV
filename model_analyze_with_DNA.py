@@ -3,27 +3,29 @@
 # 测试命令 #
 # python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
 # --step 1 \
-# --DNA_info /home/lqh/Codes/Data/TCGA_maf_files/TCGA-LUSC \
-# --RNA_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.table \
+# --cancer_type BLCA \
+# --DNA_info /home/lqh/Codes/Data/TCGA_maf_files/TCGA-BLCA \
+# --RNA_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.table \
 # --WXS_target_interval /home/lqh/resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed \
 # --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUSC_RNA_somatic_calling_info.tsv \
-# --RNA_bam_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/apply_BQSR \
-# --Mutect2_target_detected_sites /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon.table \
-# --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA \
-# --num_threads 18 \
-# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC_DNA_step_1.class
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
+# --RNA_bam_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/apply_BQSR \
+# --Mutect2_target_detected_sites /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon.table \
+# --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
+# --num_threads 40 \
+# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/BLCA_DNA_step_1.class
 
 # --template_vcf_file /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
 
+# 测试完成，一切正常#
 # python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
 # --step 2 \
-# --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
-# --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC_DNA_step_1.class \
-# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.model \
-# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.one_hot_encoder \
-# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
-# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table
+# --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
+# --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM_DNA_step_1.class \
+# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
+# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
+# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
+# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table
 
 # 导入相关需求包
 # 基础包
@@ -57,6 +59,7 @@ parser=argparse.ArgumentParser(description="A discriminate model construction pi
 parser.add_argument('--step', type=int, help='Step indicator of model utilization with DNA.')
 parser.add_argument("--output_file_path", help="Path for temp/final output file.")
 # Step 1
+parser.add_argument('--cancer_type', help='Cancer type for current study.')
 parser.add_argument('--DNA_info', help='DNA somatic mutations used to validate.')
 parser.add_argument('--RNA_info', help='RNA somatic mutations with model predicting status.')
 parser.add_argument('--WXS_target_interval', help='WXS target interval bed file.')
@@ -127,6 +130,120 @@ def RNA_EDIT_process(REDIprotal, DARNED):
     print(f"合并数据库信息并去重后，所得的RNA编辑位点总数为{len(RNA_EDIT_INFO)}")
 
     return RNA_EDIT_INFO
+
+# 工具函数1：提取pysam对象列表中相应信息
+# 根据vcf文件中单个record的突变信息，获取所有特定case的DNA肿瘤样本中var最大AD及其他相应信息，其返回值纳入其他信息的dataframe中
+def tumor_bam_record_retrive(df_record, samfile_list):
+    try:
+        # 获取基本信息
+        ref = df_record.Reference_Allele
+        alt = df_record.Tumor_Allele1
+        chrom = df_record.Chromosome
+        position = df_record.Start_Position
+        # 获取每个bam文件中对应的碱基coverage信息
+        other_coverage_list = []
+        # 获取每个bam文件中对应的平均mapping质量信息
+        other_median_mapping_quality_list = []
+
+        # 应用首个bam文件中coverage信息完成初始化(设置base的最低质量值为20，与GATK要求保持一致)
+        initial_count_coverage_info = count_coverage_decompose(
+            samfile_list[0].count_coverage(contig=chrom, start=position - 1, stop=position, quality_threshold=20))
+        initial_median_mapping_quality = np.median([x.mapping_quality for x in samfile_list[0].fetch(contig=chrom, start=position - 1, stop=position)])
+        # 什么乱七八糟的数据结构啊= =我佛了，还需要强行转为str后才能作为key去访问字典中元素
+        optimal_ref_coverage = initial_count_coverage_info[str(ref)]
+        optimal_alt_coverage = initial_count_coverage_info[str(alt)]
+        optimal_median_mapping_quality = initial_median_mapping_quality
+        # 遍历所有bam文件，并进行条件判断
+        for samfile in samfile_list[1:]:
+            # pysam apply 0-based coordinate system(设置base的最低质量值为20，与GATK要求保持一致)
+            count_coverage_info = count_coverage_decompose(
+                samfile.count_coverage(contig=chrom, start=position - 1, stop=position, quality_threshold=20))
+            # 当前覆盖度信息
+            current_ref_coverage = count_coverage_info[str(ref)]
+            current_alt_coverage = count_coverage_info[str(alt)]
+            current_median_mapping_quality = np.median([x.mapping_quality for x in samfile.fetch(contig=chrom, start=position - 1, stop=position)])
+            # 当前覆盖度信息进行对比
+            # 比较alt的coverage信息
+            if current_alt_coverage > optimal_alt_coverage:
+                # 保存当前值，并将更好的值重新赋值
+                other_coverage_list.append(str(optimal_ref_coverage) + "/" + str(optimal_alt_coverage))
+                other_median_mapping_quality_list.append(str(current_median_mapping_quality))
+                optimal_ref_coverage, optimal_alt_coverage, optimal_median_mapping_quality = current_ref_coverage, current_alt_coverage, current_median_mapping_quality
+            elif current_alt_coverage == optimal_alt_coverage:
+                # 进一步比较ref的coverage信息
+                if current_ref_coverage > optimal_ref_coverage:
+                    # 保存当前值，并将更好的值重新赋值
+                    other_coverage_list.append(str(optimal_ref_coverage) + "/" + str(optimal_alt_coverage))
+                    other_median_mapping_quality_list.append(str(current_median_mapping_quality))
+                    optimal_ref_coverage, optimal_alt_coverage, optimal_median_mapping_quality = current_ref_coverage, current_alt_coverage, current_median_mapping_quality
+                else:
+                    # 保存当前值，不进行更新
+                    other_coverage_list.append(str(current_ref_coverage) + "/" + str(current_alt_coverage))
+                    other_median_mapping_quality_list.append(str(current_median_mapping_quality))
+            else:
+                # 保存当前值，不进行更新
+                other_coverage_list.append(str(current_ref_coverage) + "/" + str(current_alt_coverage))
+                other_median_mapping_quality_list.append(str(current_median_mapping_quality))
+
+        return optimal_ref_coverage, optimal_alt_coverage, ";".join(other_coverage_list), optimal_median_mapping_quality, ";".join(other_median_mapping_quality_list)
+    except Exception as ex:
+        print(ex)
+        print("tumor_bam_record_retrive错误！！！")
+
+# 工具函数2：将pysam中count_coverage函数的返回值转换为字典形式
+def count_coverage_decompose(count_coverage_info):
+    try:
+        count_coverage_dict = {}
+        # 函数返回值为ACGT的顺序情况
+        count_coverage_dict['A'] = count_coverage_info[0][0]
+        count_coverage_dict['C'] = count_coverage_info[1][0]
+        count_coverage_dict['G'] = count_coverage_info[2][0]
+        count_coverage_dict['T'] = count_coverage_info[3][0]
+        return count_coverage_dict
+    except Exception as ex:
+        print(ex)
+        print("count_coverage_decompose错误！！！")
+
+# 工具函数10：自定义的error_callback函数
+def print_error(self, value):
+    print("error: ", value)
+
+# 工具函数10：添加RNA bam信息进入突变位点中
+def RNA_bam_info_adder(case_id, gdc_validate_all_info_DNA_only_RNA_missing_case_list,
+                       gdc_validate_all_info_DNA_only_RNA_missing_case_only, RNA_calling_info, RNA_bam_folder_loc,
+                       tumor_bam_record_retrive):
+    print(f"开始根据{case_id}中的突变记录获取对应的RNA测序情况")
+    # 获取所有RNA肿瘤aliquots_id信息
+    RNA_tumor_aliquots_id = RNA_calling_info.loc[(RNA_calling_info['case_id'] == case_id) & (
+            RNA_calling_info['sample_type'] == "Primary Tumor"), 'aliquots_id']
+    print(f"{case_id}对应肿瘤RNA测序样本的aliquots_id为{RNA_tumor_aliquots_id}")
+    # 获取所有RNA tumor bam文件路径
+    RNA_tumor_case_file_paths = RNA_bam_folder_loc + "/" + RNA_tumor_aliquots_id + ".bam"
+    # 应用pysam打开所有RNA tumor bam文件，并将对应的pysam对象存放于列表中
+    samfile_list = [pysam.AlignmentFile(RNA_tumor_case_file_path, "rb") for RNA_tumor_case_file_path in
+                    RNA_tumor_case_file_paths]
+    # 对于case内所有突变记录进行分析
+    # 新建列以保存相关信息
+    gdc_validate_all_info_DNA_only_RNA_missing_case_only['ref_AD_tumor_bam_RNA'] = ""
+    gdc_validate_all_info_DNA_only_RNA_missing_case_only['alt_AD_tumor_bam_RNA'] = ""
+    gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_AD_tumor_bam_RNA'] = ""
+    gdc_validate_all_info_DNA_only_RNA_missing_case_only['median_MQ_tumor_bam_RNA'] = ""
+    gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_median_MQ_tumo_bam_RNA'] = ""
+    for i in gdc_validate_all_info_DNA_only_RNA_missing_case_only.index:
+        # 获得DNA tumor的最佳ref、alt和其他DNA tumor样本的碱基覆盖度信息
+        # 将其保存于DataFrame中
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'ref_AD_tumor_bam_RNA'], \
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'alt_AD_tumor_bam_RNA'], \
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'other_AD_tumor_bam_RNA'], \
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'median_MQ_tumor_bam_RNA'], \
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[
+            i, 'other_median_MQ_tumo_bam_RNA'] = tumor_bam_record_retrive(
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i,], samfile_list)
+    # 关闭所有RNA tumor bam文件对应的pysam对象
+    [samfile.close() for samfile in samfile_list]
+    # 将修改后DataFrame保存于list中
+    gdc_validate_all_info_DNA_only_RNA_missing_case_list.append(
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only)
 
 # 为联合DNA突变进行分析提供代码支持
 class data_prepare():
@@ -327,7 +444,7 @@ class data_prepare():
     # 工具函数8：恢复本地数据分析类
     def unpickle(self, instance_path):
         with open(instance_path, 'rb') as f:
-            return pickle.load(f)
+            return joblib.load(f)
 
 # 根据所提供的信息来完成RNA与DNA信息的完全整合
 # RNA信息：预测为positive、negative的相应RNA体细胞突变，包含需要训练的特征
@@ -343,12 +460,12 @@ class model_analyze_with_DNA(object):
     gdc_required_columns = ['Tumor_Sample_UUID', 'Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1', 'Tumor_Allele2']
 
     # 初始化类实例，positive_info、negative_info、REDIportal_df、gdc_validate_df分别为输入的预测为阳性和阴性的dataframe数据集、REDIportal数据集和相应项目的GDC突变数据集
-    def __init__(self, gdc_validate_all_info, positive_RNA_info, negative_RNA_info, WXS_target_interval, exon_interval):
+    def __init__(self, gdc_validate_all_info, RNA_info, WXS_target_interval, exon_interval, num_threads):
         self.gdc_validate_all_info = gdc_validate_all_info[['Tumor_Sample_UUID', 'Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1', 'Tumor_Allele2']]
-        self.positive_RNA_info = positive_RNA_info
-        self.negative_RNA_info = negative_RNA_info
+        self.RNA_info = RNA_info
         self.WXS_target_interval = WXS_target_interval
         self.exon_interval = exon_interval
+        self.num_threads = num_threads
 
     # 关键函数1：根据所得RNA突变来对GDC中突变进行分割与详细解释——已检查，代码无问题，所计算所得P-R与之前一致
     # 输入信息
@@ -365,13 +482,38 @@ class model_analyze_with_DNA(object):
     # 输出5：仅在RNA中出现的部分（RNA中新增加的信息量，目前仅将其聚焦于驱动基因上）
     # 分析依据：肿瘤case id和突变位置等信息作为判定是否交叉的信息来源
     def GDC_RNA_discrepancy_analysis_total(self):
-        print(f"开始对GDC和RNA-seq中相应突变的交叉、独立情况进行分析")
+        print(f"开始对DNA和RNA-seq中相应突变的交叉、独立情况进行分析")
 
         print("="*100)
 
         # 首先对RNA、GDC交叉的case情况作分析，找出是否存在RNA所独有的case，并输出其结果
-        GDC_RNA_intersection_set = set(self.gdc_validate_all_info.Tumor_Sample_UUID).intersection(set(self.positive_RNA_info.Tumor_Sample_UUID))
-        print(f"GDC、RNA间存在交叉的case数为{len(GDC_RNA_intersection_set)}")
+        GDC_set = set(self.gdc_validate_all_info.Tumor_Sample_UUID)
+        RNA_set = set(self.RNA_info.Tumor_Sample_UUID)
+        GDC_RNA_intersection_set = set(self.gdc_validate_all_info.Tumor_Sample_UUID).intersection(set(self.RNA_info.Tumor_Sample_UUID))
+        print(f"DNA对应case数为{len(GDC_set)}；RNA对应case数为{len(RNA_set)}；DNA、RNA间存在交叉的case数为{len(GDC_RNA_intersection_set)}")
+
+        print(f"其中，缺少DNA证据支持的case信息为{RNA_set - GDC_RNA_intersection_set}，在后续分析中剔除，以避免影响P-R值计算，但需要重点关注")
+        self.gdc_validate_all_info = self.gdc_validate_all_info[self.gdc_validate_all_info['Tumor_Sample_UUID'].isin(GDC_RNA_intersection_set)]
+        self.RNA_info = self.RNA_info[self.RNA_info['Tumor_Sample_UUID'].isin(GDC_RNA_intersection_set)]
+        print(f"最终所得用以和DNA联合分析的RNA体细胞突变数目为{len(self.RNA_info)}")
+
+        # 应用DNA数据对其进行初步评估
+        self.RNA_info_TP = pd.merge(self.RNA_info, self.gdc_validate_all_info, on=list(self.gdc_validate_all_info.columns))
+        print(f"RNA_info_TP类获取完成，数目为{len(self.RNA_info_TP)}（对象名称为RNA_info_TP）")
+        self.RNA_info_TN = self.RNA_info.append(self.RNA_info_TP)
+        self.RNA_info_TN = self.RNA_info_TN.drop_duplicates(keep=False)
+        print(f"RNA_info_TN类获取完成，数目为{len(self.RNA_info_TN)}（对象名称为RNA_info_TN）")
+        # 分别为TP和TN添加标签列
+        self.RNA_info_TP['DNA_label'] = 1
+        self.RNA_info_TN['DNA_label'] = 0
+
+        print(f"其中，有DNA证据支持的RNA突变数为{len(self.RNA_info_TP)}，缺少DNA证据支持的RNA突变数为{len(self.RNA_info_TN)}")
+
+        # 将TP、TN重新合并（注意此时已经将index重置）
+        self.RNA_info = self.RNA_info_TP.append(self.RNA_info_TN, ignore_index=True)
+        self.positive_RNA_info = self.RNA_info[self.RNA_info['pred_label'] == 1]
+        self.negative_RNA_info = self.RNA_info[self.RNA_info['pred_label'] == 0]
+
 
         print("=" * 100)
 
@@ -442,36 +584,20 @@ class model_analyze_with_DNA(object):
         print("="*100)
 
         # 新建列表以保存获取信息后的DataFrame
-        gdc_validate_all_info_DNA_only_RNA_missing_case_list = []
+        # 此处转入多进程并行处理（2021.10.13）
+        manager = Manager()
+        gdc_validate_all_info_DNA_only_RNA_missing_case_list = manager.list()
+
+        print('Parent process %s.' % os.getpid())
+        p = Pool(self.num_threads)
         for case_id in self.gdc_validate_all_info_DNA_only_RNA_missing.Tumor_Sample_UUID.value_counts().index:
-            print(f"开始根据{case_id}中的突变记录获取对应的RNA测序情况")
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only = self.gdc_validate_all_info_DNA_only_RNA_missing[self.gdc_validate_all_info_DNA_only_RNA_missing.Tumor_Sample_UUID==case_id]
-            # 获取所有RNA肿瘤aliquots_id信息
-            RNA_tumor_aliquots_id = RNA_calling_info.loc[(RNA_calling_info['case_id'] == case_id) & (RNA_calling_info['sample_type'] == "Primary Tumor"), 'aliquots_id']
-            print(f"{case_id}对应肿瘤RNA测序样本的aliquots_id为{RNA_tumor_aliquots_id}")
-            # 获取所有RNA tumor bam文件路径
-            RNA_tumor_case_file_paths = RNA_bam_folder_loc + "/" + RNA_tumor_aliquots_id + ".bam"
-            # 应用pysam打开所有RNA tumor bam文件，并将对应的pysam对象存放于列表中
-            samfile_list = [pysam.AlignmentFile(RNA_tumor_case_file_path, "rb") for RNA_tumor_case_file_path in RNA_tumor_case_file_paths]
-            # 对于case内所有突变记录进行分析
-            # 新建列以保存相关信息
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only['ref_AD_tumor_bam_RNA'] = ""
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only['alt_AD_tumor_bam_RNA'] = ""
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_AD_tumor_bam_RNA'] = ""
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only['median_MQ_tumor_bam_RNA'] = ""
-            gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_median_MQ_tumo_bam_RNA'] = ""
-            for i in gdc_validate_all_info_DNA_only_RNA_missing_case_only.index:
-                # 获得DNA tumor的最佳ref、alt和其他DNA tumor样本的碱基覆盖度信息
-                # 将其保存于DataFrame中
-                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'ref_AD_tumor_bam_RNA'], \
-                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'alt_AD_tumor_bam_RNA'], \
-                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'other_AD_tumor_bam_RNA'], \
-                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'median_MQ_tumor_bam_RNA'], \
-                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'other_median_MQ_tumo_bam_RNA'] = self.tumor_bam_record_retrive(gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, ], samfile_list)
-            # 关闭所有RNA tumor bam文件对应的pysam对象
-            [samfile.close() for samfile in samfile_list]
-            # 将修改后DataFrame保存于list中
-            gdc_validate_all_info_DNA_only_RNA_missing_case_list.append(gdc_validate_all_info_DNA_only_RNA_missing_case_only)
+            p.apply_async(func=RNA_bam_info_adder, args=(case_id, gdc_validate_all_info_DNA_only_RNA_missing_case_list, self.gdc_validate_all_info_DNA_only_RNA_missing[self.gdc_validate_all_info_DNA_only_RNA_missing.Tumor_Sample_UUID == case_id], RNA_calling_info, RNA_bam_folder_loc, tumor_bam_record_retrive,), error_callback=print_error)
+        print('Waiting for all subprocesses done...')
+        p.close()
+        p.join()
+        print('All subprocesses done.')
+
+        gdc_validate_all_info_DNA_only_RNA_missing_case_list = list(gdc_validate_all_info_DNA_only_RNA_missing_case_list)
         self.gdc_validate_all_info_DNA_only_RNA_missing_RNA_info = pd.concat(gdc_validate_all_info_DNA_only_RNA_missing_case_list)
         print(f"在RNA中缺少突变信息的GDC突变所对应的RNA测序深度信息获取完成，对象名为gdc_validate_all_info_DNA_only_RNA_missing_RNA_info")
 
@@ -526,6 +652,7 @@ class model_analyze_with_DNA(object):
     # 注意：检查并确认相应数目是否一致，保证不遗漏任何一个突变位点
     def GDC_RNA_info_summary(self, data_prepare_demo):
         ### 检查各部分基本信息，添加tag和sub_tag注释 ###
+        print("="*100)
         # 对于DNA和RNA重叠部分
         print(f"首先完成DNA和RNA重叠部分的合并，其中positive对象为positive_RNA_info_GDC_intersect，数目为{len(self.positive_RNA_info_GDC_intersect)}；\n"
               f"negative对象为gdc_validate_all_info_DNA_only_RNA_negative，数目为{len(self.gdc_validate_all_info_DNA_only_RNA_negative)}")
@@ -562,11 +689,12 @@ class model_analyze_with_DNA(object):
         self.final_info = pd.concat([predictable_part, DNA_only[DNA_only['Sub_Tag']!="force_called"]])
         self.final_info.reset_index(drop=True, inplace=True)
 
+        print(f"评估结束，对于所有RNA突变，其precision为{len(self.positive_RNA_info_GDC_intersect)/(len(self.positive_RNA_info_GDC_intersect)+len(self.positive_RNA_info_RNA_only))}，recall为{len(self.positive_RNA_info_GDC_intersect)/(len(self.positive_RNA_info_GDC_intersect)+len(self.gdc_validate_all_info_DNA_only_RNA_negative))}")
+
         print(f"\n汇总DNA、RNA所有突变信息的汇总表final_info构建完成！包含{len(self.final_info)}个突变对应信息")
         print("主标签：Tag——RNA_DNA_overlap, RNA_only, DNA_only")
         print("子标签：Sub_Tag——non_SNP, force_called, force_call_failed")
         print("概率值：pred_prob；预测标签：pred_label")
-
 
     # 工具函数1：提取pysam对象列表中相应信息
     # 根据vcf文件中单个record的突变信息，获取所有特定case的DNA肿瘤样本中var最大AD及其他相应信息，其返回值纳入其他信息的dataframe中
@@ -719,7 +847,48 @@ class model_analyze_with_DNA(object):
     # 工具函数9：将数据分析类保存至本地文件
     def pickle(self, output_file_path):
         with open(output_file_path, 'wb') as f:
-            pickle.dump(self, f)
+            joblib.dump(self, f, compress=3)
+
+    # 工具函数10：自定义的error_callback函数
+    def print_error(self, value):
+        print("error: ", value)
+
+    # 工具函数10：添加RNA bam信息进入突变位点中
+    def RNA_bam_info_adder(self, case_id, gdc_validate_all_info_DNA_only_RNA_missing_case_list,
+                           gdc_validate_all_info_DNA_only_RNA_missing_case_only, RNA_calling_info, RNA_bam_folder_loc,
+                           tumor_bam_record_retrive):
+        print(f"开始根据{case_id}中的突变记录获取对应的RNA测序情况")
+        # 获取所有RNA肿瘤aliquots_id信息
+        RNA_tumor_aliquots_id = RNA_calling_info.loc[(RNA_calling_info['case_id'] == case_id) & (
+                RNA_calling_info['sample_type'] == "Primary Tumor"), 'aliquots_id']
+        print(f"{case_id}对应肿瘤RNA测序样本的aliquots_id为{RNA_tumor_aliquots_id}")
+        # 获取所有RNA tumor bam文件路径
+        RNA_tumor_case_file_paths = RNA_bam_folder_loc + "/" + RNA_tumor_aliquots_id + ".bam"
+        # 应用pysam打开所有RNA tumor bam文件，并将对应的pysam对象存放于列表中
+        samfile_list = [pysam.AlignmentFile(RNA_tumor_case_file_path, "rb") for RNA_tumor_case_file_path in
+                        RNA_tumor_case_file_paths]
+        # 对于case内所有突变记录进行分析
+        # 新建列以保存相关信息
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only['ref_AD_tumor_bam_RNA'] = ""
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only['alt_AD_tumor_bam_RNA'] = ""
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_AD_tumor_bam_RNA'] = ""
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only['median_MQ_tumor_bam_RNA'] = ""
+        gdc_validate_all_info_DNA_only_RNA_missing_case_only['other_median_MQ_tumo_bam_RNA'] = ""
+        for i in gdc_validate_all_info_DNA_only_RNA_missing_case_only.index:
+            # 获得DNA tumor的最佳ref、alt和其他DNA tumor样本的碱基覆盖度信息
+            # 将其保存于DataFrame中
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'ref_AD_tumor_bam_RNA'], \
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'alt_AD_tumor_bam_RNA'], \
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'other_AD_tumor_bam_RNA'], \
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i, 'median_MQ_tumor_bam_RNA'], \
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[
+                i, 'other_median_MQ_tumo_bam_RNA'] = tumor_bam_record_retrive(
+                gdc_validate_all_info_DNA_only_RNA_missing_case_only.loc[i,], samfile_list)
+        # 关闭所有RNA tumor bam文件对应的pysam对象
+        [samfile.close() for samfile in samfile_list]
+        # 将修改后DataFrame保存于list中
+        gdc_validate_all_info_DNA_only_RNA_missing_case_list.append(
+            gdc_validate_all_info_DNA_only_RNA_missing_case_only)
 
 
 if __name__ == '__main__':
@@ -730,8 +899,6 @@ if __name__ == '__main__':
         DNA_info = pd.read_table(args.DNA_info)
         # 读取经过模型预测的RNA位点信息
         RNA_info = pd.read_table(args.RNA_info)
-        RNA_info_positive = RNA_info[RNA_info['pred_label'] == 1]
-        RNA_info_negative = RNA_info[RNA_info['pred_label'] == 0]
         # 读取portion相关区间信息
         data_prepare_demo = data_prepare()
         WXS_target_interval_path = args.WXS_target_interval
@@ -744,10 +911,10 @@ if __name__ == '__main__':
         # 正式分析 #
         # 初始化分析类
         result_analysis_demo = model_analyze_with_DNA(DNA_info,
-                                                   RNA_info_positive,
-                                                   RNA_info_negative,
+                                                   RNA_info,
                                                    data_prepare_demo.WXS_target_interval,
-                                                   data_prepare_demo.exon_interval)
+                                                   data_prepare_demo.exon_interval,
+                                                   args.num_threads)
 
         # 对DNA和RNA中相应突变的交叉、独立情况进行分析
         result_analysis_demo.GDC_RNA_discrepancy_analysis_total()
@@ -761,7 +928,7 @@ if __name__ == '__main__':
         # 进一步导出需要force-call的vcf文件信息
         result_analysis_demo.vcf_info_extractor(result_analysis_demo.gdc_validate_all_info_DNA_only_RNA_missing,
                                                 args.template_vcf_file,
-                                                os.path.join(args.project_folder, "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check"))
+                                                os.path.join(args.project_folder, args.cancer_type, "RNA/RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check"))
         # 最后将其信息一次导出
         # result_analysis_demo.gdc_validate_all_info_DNA_only_RNA_missing_RNA_info.to_csv(args.output_table_path, sep="\t", index=False)
         result_analysis_demo.pickle(args.output_file_path)
