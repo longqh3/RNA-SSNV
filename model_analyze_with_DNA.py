@@ -79,32 +79,7 @@ parser.add_argument("--training_columns_path", help="Path for constructed model.
 
 args=parser.parse_args()
 
-# 固定相关需从训练数据中drop的变量
-# 删除"Expression_TPM"特征，因其在RNA测序数据中难以获得（需要额外进行软件运算），且事实上影响仅为0.1%
-# 保存"ref_AD_normal", "alt_AD_normal"（在"ref_AD_tumor_DNA", "alt_AD_tumor_DNA"之前）
-# 删除"ref_context"列，避免干扰结果（2021.1.11）
-# 删除多个后添加的列，避免干扰结果构建
-# 纳入"exon_distance"列，增强其对于不恰当的位点识别的敏感性（2021.02.20）
-# 删除"exon_distace"、"target_symbol"列，以保证仅有"target_distance"列纳入模型中（2021.03.07）
-# 进一步纳入UCSC GENCODE v22中更新后的"exon_distance"列，并排除其他相关列"transcript_ID"（2021.03.09）如"target_symbol"、"gene_symbol", "gene_strand", "gene_exon", "mutation_region",
-# 2021.5.7 尝试删除"AF_tumor"这一特征（避免部分alt AD很高的位点被误认为是FN）
-# 2021.5.9 尝试删除"DP"这一特征（避免DNA和RNA对应DP的无理由组合）——尝试失败，效果更差了
-# 2021.5.10 尝试删除"COSMIC"这一特征（避免泛化性差这一可能后果）
-# 2021.6.13 尝试删除"AS_UNIQ_ALT_READ_COUNT"这一特征（根据GATK官方，其仅在罕见场合可应用）
-# 2021.8.17
-DROP_COLUMNS = ['Attribute', 'Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1', 'Tumor_Allele2',
-             'Tumor_Sample_UUID', "ref_AD_tumor_DNA", "alt_AD_tumor_DNA",
-             "AD_other_RNA_tumor", "AD_other_normal", "AD_other_DNA_tumor",
-             "transcript_ID",
-             "Tumor_Seq_Allele2", "Hugo_Symbol", "Variant_Classification",
-             "Gencode_28_secondaryVariantClassification", "HGNC_Ensembl_Gene_ID",
-             "Reference_Allele", "ref_context",
-             'Strand', 'Transcript_Strand', 'Codon_Change', 'Protein_Change', 'DrugBank',
-             'record_filter',
-             'COSMIC_total_alterations_in_gene',
-             'AS_UNIQ_ALT_READ_COUNT']
-
-# 编制碱基改变对应规则
+# Assign allele change rules
 ALLELE_CHANGE_DICT = {
     "T>C":"A>G",
     "C>T":"G>A",

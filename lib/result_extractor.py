@@ -2,36 +2,70 @@
 # Tag: RNA_DNA_overlap DNA_only RNA_only
 # pred_label: 1 0
 # output_type: simple_maf total_maf
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.table \
-# --Tag RNA_DNA_overlap \
-# --output_type total_maf \
-# --pred_label 1 \
-# --Hugo_Symbol TP53 \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.RNA_DNA_overlap.TP53.table
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.table \
+--Tag DNA_only \
+--Sub_Tag force_called \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.table
 
 # --pred_label 1 \
 # --Hugo_Symbol KMT2C \
 
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
-# --Tag DNA_only \
-# --Sub_Tag force_called \
-# --Variant_Classification Missense_Mutation \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.DNA_only.driver_gene.table \
-# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type LUSC
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+--Tag DNA_only \
+--Sub_Tag force_called \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.DNA_only.driver_gene.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type LUSC
 
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
-# --Tag RNA_DNA_overlap \
-# --Variant_Classification Missense_Mutation \
-# --pred_label 1 \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.driver_gene.table \
-# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type LUSC
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+--Tag RNA_DNA_overlap \
+--pred_label 1 \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.driver_gene.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type LUSC
+
+# --Tag RNA_DNA_overlap DNA_only
+# --Variant_Classification Missense_Mutation Nonsense_Mutation Silent \
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+--Tag RNA_DNA_overlap \
+--Variant_Classification Nonsense_Mutation \
+--pred_label 1 \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.driver_gene.Nonsense_Mutation.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type LUSC
+
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+--Tag DNA_only RNA_DNA_overlap \
+--Variant_Classification Nonsense_Mutation \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.total_DNA.driver_gene.Nonsense_Mutation.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type LUSC
+
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+--Tag DNA_only \
+--Variant_Classification Nonsense_Mutation \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.DNA_only.driver_gene.Nonsense_Mutation.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type LUSC
+
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
+--Tag RNA_DNA_overlap RNA_only \
+--output_type total_maf \
+--pred_label 1 \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.total_RNA.table
 
 import pandas as pd
 
@@ -92,7 +126,7 @@ def multiple_query(data_info, query_terms, output_type):
 arg_terms = args.__dict__
 query_terms = {}
 # 挑选出有值的筛选标准来进行筛选
-for key in ["Tag", "Sub_Tag", "pred_label", "Hugo_Symbol"]:
+for key in ["Tag", "Sub_Tag", "pred_label", "Hugo_Symbol", "Variant_Classification"]:
     if not (arg_terms[key] is None):
         query_terms[key] = arg_terms[key]
 print(f"Select criteria: {query_terms}")

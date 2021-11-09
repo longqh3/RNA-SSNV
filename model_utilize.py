@@ -50,8 +50,7 @@ import vcf
 
 import argparse
 
-# description参数可以用于描述脚本的参数作用，默认为空
-parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+parser=argparse.ArgumentParser(description="Model utilization for RNA-SSNV.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 
 parser.add_argument('--REDIportal', help='hg38 REDIportal bed file.')
@@ -64,7 +63,7 @@ parser.add_argument("--output_table_path", help="Path for final output table.")
 
 args=parser.parse_args()
 
-# 编制碱基改变对应规则
+# Assign allele change rules
 ALLELE_CHANGE_DICT = {
     "T>C":"A>G",
     "C>T":"G>A",
@@ -92,31 +91,33 @@ def RNA_EDIT_process(REDIprotal, DARNED):
     return RNA_EDIT_INFO
 
 class model_utilize_no_DNA(object):
+    """Read in model and utilize it into called mutations.
 
-    # 初始化类实例
-    # 输入1：所有原始RNA SSNV突变
-    # 输入2：模型文件存储路径
-    # 输入3：RNA编辑位点
+    Attributes:
+        independent_info: The DataFrame containing all features and annotations from "own_data_vcf_info_retriver.py".
+        RNA_edit_info: The DataFrame containing RNA editing sites info from REDIportal and DARNED databases.
+        model_path: Path of machine learning model.
+        one_hot_encoder_path: Path of one-hot encoder.
+        training_columns_path: Path of training data's features.
+        output_table_path: Path of output table (added predicted probabilities and labels).
+    """
+
     def __init__(self, independent_info, RNA_edit_info, model_path, one_hot_encoder_path, training_columns_path, output_table_path):
-        # 初始化数据
+        """Inits model utilization with data and model"""
+
+        # data
         self.independent_info = independent_info
         self.RNA_edit_info = RNA_edit_info
-        # 初始化模型
+        # model
         self.rf_gcv = joblib.load(model_path)
         self.enc = joblib.load(one_hot_encoder_path)
         self.training_columns = pd.Series(pd.read_table(training_columns_path)["0"])
         self.output_table_path = output_table_path
 
-    # 2021.07.05 根据上述最佳模型，绘制独立验证集中的PR曲线，并根据使F1最大化的阈值来输出相应positive、negative突变集
-    # 应用目前效果最好的模型进行测试
-    # 输入：实例新建的属性rf_gcv、scaler，代表经过网格搜索所得到的最优RF模型、标准化工具
-    # 输入2：实例新建的属性independent_info,为独立测试数据集对应的dataframe
-    # 输出：实例新建的属性independent_info_training、independent_info_training_scaler,为独立测试数据集对应的特征信息、标准化后的特征信息
-    # 输出2：实例新建的属性independent_positive_thre，为独立测试数据集根据最大化F1值所得阈值对应的阳性位点（negative为阴性位点）
-    # 输出3：实例新建的属性gdc_validate_df_SNP，为经过突变去重+SNP选取的gdc突变数据集
-    # 输出4：实例新建的属性independent_pred、independent_pred_thre、independent_label，为根据相应模型和gdc突变数据集结果，所得独立验证集的预测概率值、预测标签和实际标签
-    # 输出5：实例新建的属性all_info_final、GDC_SNP_info_final，最终确定用以构建标签的RNA突变数据集和GDC突变数据集
     def common_RF_utilize(self):
+        """Utilize
+        """
+
 
         # 开始对所有RNA突变进行筛选，筛选掉基本无法处理&没必要处理的multiallelic位点——self.all_info
         print(f"所有RNA突变在进行multi-allelic筛选前，对应的突变数目为{len(self.independent_info)}")
