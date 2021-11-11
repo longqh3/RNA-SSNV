@@ -1,4 +1,4 @@
-# 结果正确性验证完成
+# test success
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_driver_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_only.table \
 # --cancer_type GBM \

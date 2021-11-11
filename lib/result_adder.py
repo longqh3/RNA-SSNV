@@ -1,4 +1,4 @@
-# 结果正确性验证完成
+# test success
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.table \
@@ -10,8 +10,7 @@ import pandas as pd
 
 import argparse
 
-# description参数可以用于描述脚本的参数作用，默认为空
-parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+parser=argparse.ArgumentParser(description="Pile up different results of RNA-SSNV into a total table.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 # Generic parameter
 parser.add_argument('--result_info', action='append', help='Result info location')

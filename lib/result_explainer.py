@@ -1,4 +1,4 @@
-# 结果正确性验证完成
+# test success
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
 # --explain_type dataset \
 # --data_info /home/lqh/Codes/Python/RNA-SSNV/output/LUAD.table \
@@ -33,8 +33,7 @@ import matplotlib.pyplot as plt
 
 import argparse
 
-# description参数可以用于描述脚本的参数作用，默认为空
-parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+parser=argparse.ArgumentParser(description="Explain the prediction for the mutation set or single mutation.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 # Generic parameter
 parser.add_argument('--explain_type', help='Type of explanation')

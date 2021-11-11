@@ -1,24 +1,24 @@
-# 结果正确性验证完成
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
---RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/LUSC.RNA_DNA_overlap.all.txt \
---DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/LUSC.DNA_only.all.txt \
---test_type chisq \
---test_column_name SIFT_converted_rankscore \
---column_threshold 0.39575
-
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
---RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.RNA_DNA_overlap.all.txt \
---DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.DNA_only.all.txt \
---test_type chisq \
---test_column_name FATHMM_converted_rankscore \
---column_threshold 0.81332
-
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
---RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.RNA_DNA_overlap.all.txt \
---DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.DNA_only.all.txt \
---test_type chisq \
---test_column_name CADD_raw_rankscore \
---column_threshold 0.5
+# test successful
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
+# --RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/LUSC.RNA_DNA_overlap.all.txt \
+# --DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/LUSC.DNA_only.all.txt \
+# --test_type chisq \
+# --test_column_name SIFT_converted_rankscore \
+# --column_threshold 0.39575
+#
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
+# --RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.RNA_DNA_overlap.all.txt \
+# --DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.DNA_only.all.txt \
+# --test_type chisq \
+# --test_column_name FATHMM_converted_rankscore \
+# --column_threshold 0.81332
+#
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_statistic.py \
+# --RNA_DNA_overlap_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.RNA_DNA_overlap.all.txt \
+# --DNA_only_info /home/lqh/Codes/Python/RNA-SSNV/data/scores/GBM.DNA_only.all.txt \
+# --test_type chisq \
+# --test_column_name CADD_raw_rankscore \
+# --column_threshold 0.5
 
 import pandas as pd
 from scipy.stats import chi2_contingency
@@ -27,8 +27,7 @@ import statsmodels.api as sm
 
 import argparse
 
-# description参数可以用于描述脚本的参数作用，默认为空
-parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+parser=argparse.ArgumentParser(description="Assessment of pathogenic scores for RNA-SSNV's missense results.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 # Generic parameter
 parser.add_argument('--RNA_DNA_overlap_info', help='RNA_DNA_overlap info location')

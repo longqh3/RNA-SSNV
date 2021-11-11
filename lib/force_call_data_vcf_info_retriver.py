@@ -26,8 +26,7 @@ import collections
 
 import argparse
 
-# description参数可以用于描述脚本的参数作用，默认为空
-parser=argparse.ArgumentParser(description="A discriminate model construction pipeline for RNA-SSNV.")
+parser=argparse.ArgumentParser(description="Retrieve features from various sources for RNA-SSNV force-called mutations.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 # Generic parameter
 parser.add_argument('--cancer_type', help='Cancer type for current study')

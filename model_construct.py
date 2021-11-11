@@ -76,7 +76,7 @@ ALLELE_CHANGE_DICT = {
     "G>C":"C>G"
 }
 
-def RNA_EDIT_process(REDIprotal, DARNED):
+def RNA_EDIT_process(REDIportal, DARNED):
     """Fetches RNA editing sites info from REDIportal and DARNED databases.
 
     Args:
@@ -88,14 +88,14 @@ def RNA_EDIT_process(REDIprotal, DARNED):
         Only two columns retained: "Chromosome", "Start_Position"
     """
     # Read in sites info as DataFrames
-    REDIprotal_info = pd.read_table(REDIprotal, header=None)
+    REDIportal_info = pd.read_table(REDIportal, header=None)
     DARNED_info = pd.read_table(DARNED, header=None)
     # Pre-process database info to extract required sites info
-    REDIprotal_info = REDIprotal_info[[0, 2]]
+    REDIportal_info = REDIportal_info[[0, 2]]
     DARNED_info = DARNED_info[[0, 2]]
-    print(f"REDIportal and DARNED database contained {len(REDIprotal_info)}和{len(DARNED_info)} RNA editing sites respectively")
+    print(f"REDIportal and DARNED database contained {len(REDIportal_info)}和{len(DARNED_info)} RNA editing sites respectively")
     # Merge sites info  from two databases
-    RNA_EDIT_INFO = pd.concat([REDIprotal_info, DARNED_info], ignore_index=True)
+    RNA_EDIT_INFO = pd.concat([REDIportal_info, DARNED_info], ignore_index=True)
     RNA_EDIT_INFO.columns = ["Chromosome", "Start_Position"]
     # De-duplicate sites
     RNA_EDIT_INFO = RNA_EDIT_INFO.drop_duplicates(keep="first")
@@ -105,7 +105,7 @@ def RNA_EDIT_process(REDIprotal, DARNED):
 
 class exon_RNA_analysis(object):
     """Training + testing datasets preparation,
-    model construction and assess,
+    model construction and assessment,
     model save.
 
     Attributes:
@@ -169,7 +169,7 @@ class exon_RNA_analysis(object):
 
         print("="*100)
 
-        # Prepare to construct training dataset (three classes): Counts for mutations located within HLA genes:
+        # Prepare to construct training dataset (three classes): Counts for mutations not located within HLA genes:
 
         # Sort GDC related info
         # We select SNP sites info from GDC mutations (columns renamed) and
@@ -233,13 +233,13 @@ class exon_RNA_analysis(object):
         # add attribute: "TP_info", "Ambiguity_info_Mutect2" and "TN_info"
 
         print(f"Start to split RNA mutations into three categories, initial mutation count was {len(self.all_info)}")
-        # 首先获取符合GDC数据集内case_specific突变信息的RNA体细胞突变——self.TP_info
+        # First, RNA somatic mutations concordant with GDC evidence were retrieved——self.TP_info
         self.TP_info = pd.merge(self.all_info, self.GDC_SNP_info, on=list(self.GDC_SNP_info.columns))
         self.all_info = self.all_info.append(self.TP_info)
         self.all_info = self.all_info.drop_duplicates(keep=False)
         print(f"TP_info category: {len(self.TP_info)}（attribute: TP_info）")
 
-        # 接下来获取与Mutect2 WES数据集重叠的RNA体细胞突变——self.Ambiguity_info_Mutect2
+        # Subsequently, RNA somatic mutations concordant with Mutect2 evidence were retrieved——self.Ambiguity_info_Mutect2
         self.Ambiguity_info_Mutect2 = pd.merge(self.all_info, self.WES_info_GDC_trimmed, on=list(self.WES_info_GDC_trimmed.columns))
         self.TN_info = self.all_info.append(self.Ambiguity_info_Mutect2)
         self.TN_info = self.TN_info.drop_duplicates(keep=False)
@@ -267,10 +267,10 @@ class exon_RNA_analysis(object):
         print(self.TP_info.columns)
 
     def data_preprocess(self):
-        """Build new features and combine TP, TN
+        """Build new features and combine TP, TN info
 
         Transfer allele changes into one-hot variables and included into model training.
-        Construct standard training dataset.
+        Construct standard training dataset and one-hot encoder.
 
         """
 
@@ -310,9 +310,9 @@ class exon_RNA_analysis(object):
         Check for alll features' distribution using histogram.
         add attribute: "X_train", "X_holdout", "y_train", "y_holdout"
         """
+        
         self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17)    #划分原数据：分为训练数据，测试数据，训练集标签和测试集标签
 
-        # print("如下所示为特征所对应的分布情况：")
         # self.X_train.hist(figsize=(20, 15), color='c')
 
     def common_RF_build(self):
@@ -367,7 +367,7 @@ class exon_RNA_analysis(object):
         rf_pred = self.rf_gcv.predict_proba(self.X_holdout)  # predict probabilities
         plt.hist(rf_pred[:, 1])  # plot prob distribution
         precisions, recalls, thresholds = precision_recall_curve(self.y_holdout, rf_pred[:, 1])  # P-R values
-        print("AUC for PR curve:", auc(recalls, precisions))
+        print("AUC for PR curve: ", auc(recalls, precisions))
         optimal_idx = np.argmax((2 * precisions * recalls) / (precisions + recalls))
         self.common_RF_PR_thre = thresholds[optimal_idx]
         print("Optimal threshold 1 for maximizing F1 score: ", self.common_RF_PR_thre)
