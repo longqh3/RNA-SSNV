@@ -13,8 +13,8 @@ Download codes
     
   git clone https://github.com/longqh3/RNA-SSNV
 
-Softwares
-----------
+Required Softwares
+----------------------
 
 Beware, all the following softwares should be added into **environmental variables** (*~/.bashrc*, *~/.bash_profile*, etc)
 
@@ -102,8 +102,8 @@ Prepare features for raw RNA somatic mutations
 
     # run feature-extraction codes
     python lib/own_data_vcf_info_retriver.py \
-    --cancer_type BLCA \
-    --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
+    --cancer_type {your_specified_cancer_type} \
+    --RNA_calling_info tables/project_RNA_somatic_calling_info.tsv \
     --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
     --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
     --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
