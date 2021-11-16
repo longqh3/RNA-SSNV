@@ -3,23 +3,23 @@
 # pred_label: 1 0
 # output_type: simple_maf total_maf
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
 # --Tag DNA_only \
 # --Sub_Tag force_called \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.table
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.table
 
 # --pred_label 1 \
 # --Hugo_Symbol KMT2C \
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
 # --Tag DNA_only \
 # --Sub_Tag force_called \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.DNA_only.driver_gene.table \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type LUSC
+# --cancer_type GBM
 #
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
@@ -33,15 +33,23 @@
 # --Tag RNA_DNA_overlap DNA_only
 # --Variant_Classification Missense_Mutation Nonsense_Mutation Silent \
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
 # --Tag RNA_DNA_overlap \
-# --Variant_Classification Nonsense_Mutation \
 # --pred_label 1 \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.driver_gene.Nonsense_Mutation.table \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.driver_gene.table \
+# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+# --cancer_type GBM
+
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+# --Tag RNA_only \
+# --pred_label 1 \
+# --output_type total_maf \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_only.driver_gene.table \
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
 # --cancer_type LUSC
-#
+
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
 # --Tag DNA_only RNA_DNA_overlap \
@@ -52,13 +60,13 @@
 # --cancer_type LUSC
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
 # --Tag DNA_only \
-# --Variant_Classification Nonsense_Mutation \
+# --Sub_Tag force_called \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.DNA_only.driver_gene.Nonsense_Mutation.table \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type LUSC
+# --cancer_type GBM
 #
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \

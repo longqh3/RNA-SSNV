@@ -10,12 +10,13 @@ import pandas as pd
 
 import argparse
 
-parser=argparse.ArgumentParser(description="Pile up different results of RNA-SSNV into a total table.")
+parser=argparse.ArgumentParser(description="Pile up different results of RNA-SSNV into a total table "
+                                           "and add other informations.")
 # parser.add_argument('--raw_RNA_mutations', '-r' ,choices=[5,10,20],default=5,type=int,help='Number of epochs.')
 # Generic parameter
 parser.add_argument('--result_info', action='append', help='Result info location')
 parser.add_argument('--output_info', help='Tags required')
-
+#
 args = parser.parse_args()
 
 print(f"待合并结果为{args.result_info}")

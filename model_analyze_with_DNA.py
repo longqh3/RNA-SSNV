@@ -3,17 +3,17 @@
 # 测试命令 #
 # python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
 # --step 1 \
-# --cancer_type BLCA \
-# --DNA_info /home/lqh/Codes/Data/TCGA_maf_files/TCGA-BLCA \
-# --RNA_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.table \
+# --cancer_type GBM \
+# --DNA_info /home/lqh/Codes/Data/TCGA_maf_files/TCGA-GBM \
+# --RNA_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table \
 # --WXS_target_interval /home/lqh/resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed \
 # --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
-# --RNA_bam_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/apply_BQSR \
-# --Mutect2_target_detected_sites /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon.table \
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_RNA_somatic_calling_info.tsv \
+# --RNA_bam_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/apply_BQSR \
+# --Mutect2_target_detected_sites /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon.table \
 # --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
 # --num_threads 40 \
-# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/BLCA_DNA_step_1.class
+# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM_DNA_step_1.class
 
 # --template_vcf_file /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
 

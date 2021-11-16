@@ -1,1 +1,2 @@
 required_columns = ['Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1', "Hugo_Symbol", 'ref_AD_tumor_RNA', 'alt_AD_tumor_RNA', 'ref_AD_normal', 'alt_AD_normal', 'ref_AD_tumor_DNA', 'alt_AD_tumor_DNA', 'pred_prob', 'pred_label', 'Variant_Classification']
+required_columns_other = ['CHROMOSOME', 'START_POSITION', 'REFERENCE_ALLELE', 'TUMOR_SEQ_ALLELE1', "Hugo_Symbol", 'ref_AD_tumor_RNA', 'alt_AD_tumor_RNA', 'ref_AD_normal', 'alt_AD_normal', 'ref_AD_tumor_DNA', 'alt_AD_tumor_DNA', 'pred_prob', 'pred_label', 'Variant_Classification']
