@@ -5,10 +5,9 @@ The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutatio
 
 Important!!! This is the github repository storing manual and necessary codes for RNA-SSNV. The practical application was located within our `onedrive storage <https://github.com/broadinstitute/gatk/releases/download/4.1.6.0/gatk-4.1.6.0.zip>`_. 
 
-.. figure: ../media/Github_code_structure.png
+.. image: ../media/Github_code_structure.png
    :alt: RNA-SSNV Framework
    :align: center
-   :caption: RNA-SSNV Framework
 
 Pre-requirements
 ~~~~~~~~~~~~~~~~~
