@@ -740,7 +740,7 @@ if __name__ == '__main__':
         data_prepare_demo.WXS_exon_region_dict_generate(WXS_target_interval_path, exon_interval_path, args.num_threads)
 
         # extra process (for GDC maf file input only)
-        DNA_info = data_prepare_demo.GDC_site_info_retrieve(DNA_info)
+        # DNA_info = data_prepare_demo.GDC_site_info_retrieve(DNA_info)
 
         # analysis #
         # init

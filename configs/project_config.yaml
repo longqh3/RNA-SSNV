@@ -2,7 +2,7 @@
 
 # Directory of your aligned RNA-seq data
 sampleDir: /public1/data/projects/tumor/multi/TCGA/raw/RNA-Seq/BLCA
-# Directory of your co-cleaned RNA-seq data
+# Directory of your co-cleaned DNA-seq data
 normalSampleDir: /public1/data/projects/tumor/multi/TCGA/raw/WXS/BLCA
 # Directory to store your temporary files
 tmpDir: /public1/tmp/lqh
@@ -11,8 +11,6 @@ workDir: /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/res
 
 # Cancer type to analyze
 cancerType: BLCA
-# Sample type indicator
-sampleType: Primary_Tumor
 # Available num of cores
 cores: 80
 

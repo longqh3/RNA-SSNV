@@ -75,7 +75,7 @@ We assume that available RNA&DNA sequence data for common users were **aligned**
 
 Beware, thanks to the **breakpoint-run** feature of snakemake, our framework can save process-finished files and delete corrupted files automatically when accidental disruption (power failure or unintended termination) occurred. Just re-run the command and our framework will continue its unfinished works. 
 
-In case of folders got locked after accidental disruption, *--unlock* option can be added during dry run to unlock corresponding folders.
+In case of folders got locked after accidental disruption, *--unlock* and *--rerun-incomplete* option can be added during dry run to unlock corresponding folders.
 
 Extract features for raw RNA somatic mutations
 -----------------------------------------------
@@ -106,31 +106,48 @@ For the generated result, records with **pred_label** being 1 should be consider
     --DARNED resources/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
     --raw_RNA_mutations {your_specified_feature_table_path} \
     --model_path model/exon_RNA_analysis_newer.model \
-    --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
-    --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
-    --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table
+    --one_hot_encoder_path model/exon_RNA_analysis_newer.one_hot_encoder \
+    --training_columns_path model/exon_RNA_analysis_newer.training_data_col \
+    --output_table_path {your_specified_predicted_table_path}
 
 Pairwise analysis for DNA and RNA somatic mutations (only do it with DNA evidence)
 ----------------------------------------------------------------------------------------
 
-Step 1: Generate RNA-omitted DNA mutations to force-call
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The combination of DNA and RNA somatic mutation can achieve **maximum performance** for mutational investigation. By incoporating DNA evidence into RNA somatic mutations, users can easily examine their intersectionality and validate their existence. 
+
+Step 0: Prepare for essential data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: sh
 
-    python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
+    python lib/Mutect2_calls_prepare_to_table.py \
+    --cancer_type {your_cancer_type} \
+    --project_folder {your_project_folder} \
+    --RNA_calling_info {your_RNA_calling_info} \
+    --output_file_path {your_specified_path_for_RNA_mutations_to_table}
+
+Step 1: Generate RNA-omitted DNA mutations to force-call
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using **DNA evidence (mutations)** to generate RNA-omitted DNA mutations to force-call and retrieve their status within RNA sequence data. 
+
+DNA mutations' required columns (maf format): "Tumor_Sample_UUID", "Chromosome", "Start_Position", "Reference_Allele", "Tumor_Allele1", "Tumor_Allele2"
+
+.. code:: sh
+
+    python model_analyze_with_DNA.py \
     --step 1 \
-    --cancer_type BLCA \
-    --DNA_info /home/lqh/Codes/Data/TCGA_maf_files/TCGA-BLCA \
-    --RNA_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.table \
-    --WXS_target_interval /home/lqh/resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed \
-    --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-    --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
-    --RNA_bam_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/apply_BQSR \
-    --Mutect2_target_detected_sites /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon.table \
-    --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
-    --num_threads 40 \
-    --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/BLCA_DNA_step_1.class
+    --cancer_type {your_cancer_type} \
+    --DNA_info {your_DNA_mutations} \
+    --RNA_info {your_specified_predicted_table_path} \
+    --WXS_target_interval resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed \
+    --exon_interval resources/GRCh38_GENCODE_v22_exon_rm_alt.bed \
+    --RNA_calling_info {your_RNA_calling_info} \
+    --RNA_bam_folder {your_project_folder}/{your_cancer_type}/RNA/apply_BQSR \
+    --Mutect2_target_detected_sites {your_specified_path_for_RNA_mutations_to_table} \
+    --project_folder {your_project_folder} \
+    --num_threads {num_of_threads} \
+    --output_file_path {your_specified_temporary_analysis_class_object}
 
 Step 1.1: Force calling all DNA only mutations and extract features
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -139,29 +156,28 @@ Modify config file for force-calling process
 
 - *configs/project_force_call_config.yaml*: pipeline-related configurations, modify it accordingly. 
 
-Run commands sequencially.
+Afterwards, run commands sequencially to conduct force-calling of Mutect2 to query RNA coverage, allele depths for DNA only mutations.
 
 .. code:: sh
     
     # dry run to see if the mutation calling pipeline works
     snakemake --cores {num_of_cores} \
     -ns rules/RNA-Somatic-tsv-Snakefile-force-call.smk \
-    --configfile configs/project_RNA_Somatic_config_force_call.yaml \
-    --rerun-incomplete
+    --configfile configs/project_force_call_config.yaml
 
     # run formally
     snakemake --cores {num_of_cores} \
-    -s rules/RNA-Somatic-tsv-Snakefile.smk \
-    --configfile configs/project_RNA_Somatic_config.yaml
+    -s rules/RNA-Somatic-tsv-Snakefile-force-call.smk \
+    --configfile configs/project_force_call_config.yaml
 
-    # run feature extraction codes after force-calling
-    python force_call_data_vcf_info_retriver.py \
-    --cancer_type GBM \
-    --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_RNA_somatic_calling_info.tsv \
-    --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
-    --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-    --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
-    --num_threads 80
+    # run feature extraction codes for force-called mutations' info
+    python lib/force_call_data_vcf_info_retriver.py \
+    --cancer_type {your_cancer_type} \
+    --RNA_calling_info {your_RNA_calling_info} \
+    --project_folder {your_project_folder} \
+    --exon_interval resources//GRCh38_GENCODE_v22_exon_rm_alt.bed \
+    --output_table_path {your_specified_force_called_table_path} \
+    --num_threads {num_of_threads}
 
 
 Step 2: Combine force-called results with RNA somatic mutations to finish RNA-DNA integrative analysis
@@ -169,70 +185,14 @@ Step 2: Combine force-called results with RNA somatic mutations to finish RNA-DN
 
 .. code:: py
 
-    python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
+    python model_analyze_with_DNA.py \
     --step 2 \
-    --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
-    --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM_DNA_step_1.class \
-    --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
-    --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
-    --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
-    --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table
-
-Output folders & files
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The pipeline outputs several folders containing intermediate files and final project-level mutations annotation file (maf format). Here, we describe the `results/` folder's schema. 
-
-Sequencing data pre-process
-------------------------------
-
-- *results/project_name/RNA/marked_duplicates*: temporary folder containing MarkDuplicates tool's output.
-- *results/project_name/RNA/splited_n_cigar_reads*: temporary folder containing SplitNCigarReads tool's output.
-- `results/project_name/RNA/base_reclibrate`: temporary folder containing BaseRecalibrate tool's output.
-- *results/project_name/RNA/apply_BQSR*: permanent folder containing ApplyBQSR tool's output, **final** files (bam format) used to call RNA somatic mutations, **applicable** for other analysis.
-
-Calling process - RNA somatic mutation
------------------------------------------
-
-- *results/project_name/RNA/RNA_somatic_mutation/Mutect2*: permanent folder containing Mutect2 tool's output. 
-- *results/project_name/RNA/RNA_somatic_mutation/GetPileupSummaries*: permanent folder containing GetPileupSummaries tool's output (best normal sample's pileup summary info).
-- *results/project_name/RNA/RNA_somatic_mutation/FilterMutectCalls*: permanent folder containing FilterMutectCalls tool's output, **final** files (vcf format) used to discriminate true RNA somatic mutations, applicable for other filtering strategy. 
-
-Model prediction process - RNA somatic mutation
----------------------------------------------------------
-
-- *results/project_name/RNA/RNA_somatic_mutation/Funcotator/SNP*: permanent folder containing Funcotator's annnotation info for raw RNA SNP calls. 
-- *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval*: permanent folder containing raw RNA SNP calls subsetted via given WES target intervals. 
-- *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval_exon*: permanent folder containing **final** raw RNA SNP calls subsetted via given WES target intervals and exon regions.
-
-Pair-wise analysis with DNA process - RNA-DNA somatic mutation
------------------------------------------------------------------------
-
-- *results/project_name/RNA/RNA_somatic_mutation/VcfAssembly/SNP_WES_interval_exon*: permanent folder containing extracted features and other info per case. 
-- *results/project_name/RNA/RNA_somatic_mutation/VcfAssembly/SNP_WES_interval_exon_positive.maf*: **final result** file for whole project - total project's Mutect2 calls marked as **positive** by our discriminant model and default threshold.
-
-Pipeline explaination
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Essential codes
-------------------
-
-- *rules/RNA_Somatic-tsv-Snakefile.smk*: snakemake-style codes to describe whole pipeline (modify at your own risk!!!). 
-- *codes/vcf_info_retriver_tsv.py*: python codes to extract features (variant, genotype and annotation level) from different sources. 
-- *codes/function_based_RNA_somatic_random_forest_prediction.py*: python codes to predict the probability of given Mutect2 calls being true RNA somatic mutations. 
-
-Pre-trained models
-----------------------
-
-- *models/data_ormalization_model.model*: data normalization model which adapted to following model.
-- *models/classic_random_forest_model.model*: random forest discriminant model trained using whole TCGA LUAD project data.
-
-Resource files
-------------------
-
-- *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets. (canonical for TCGA projects)
-- *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. 
-
+    --force_call_RNA_info {your_specified_force_called_table_path} \
+    --instance_path {your_specified_temporary_analysis_class_object} \
+    --model_path models/exon_RNA_analysis_newer.model \
+    --one_hot_encoder_path models/exon_RNA_analysis_newer.one_hot_encoder \
+    --training_columns_path models/exon_RNA_analysis_newer.training_data_col \
+    --output_file_path {your_specified_final_table_path}
 
 P.S. Train your own discriminant model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,6 +206,8 @@ Data-preparation
 
 Train customized model
 -----------------------
+
+Training on a particular sequencing technology may not transfer to another. In that case, uses suspecting an different sequencing pattern can use their own data to train the customized model. 
 
 - Using gold-standard TP mutations with their corresponding RNA somatic mutations to train customized model. The performance matrix for model training will be generated. 
 
@@ -272,6 +234,52 @@ Utilize customized model
 -------------------------
 
 - Back to the beginning of our pipeline, edit the **model** path within config file, start our pipeline and good to go!
+
+Output folders & files
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The pipeline outputs several folders containing intermediate files and **final** project-level mutations annotation file (following standard maf format). Here, we detailly describe the `results/` folder's schema. 
+
+Sequencing data pre-process
+------------------------------
+
+- *results/project_name/RNA/marked_duplicates*: temporary folder containing MarkDuplicates tool's output.
+- *results/project_name/RNA/splited_n_cigar_reads*: temporary folder containing SplitNCigarReads tool's output.
+- `results/project_name/RNA/base_reclibrate`: temporary folder containing BaseRecalibrate tool's output.
+- *results/project_name/RNA/apply_BQSR*: permanent folder containing ApplyBQSR tool's output, **final** files (bam format) used to call RNA somatic mutations, **applicable for other analysis**.
+
+Calling process - called RNA somatic mutation
+------------------------------------------------
+
+- *results/project_name/RNA/RNA_somatic_mutation/Mutect2*: permanent folder containing Mutect2 tool's output. 
+- *results/project_name/RNA/RNA_somatic_mutation/GetPileupSummaries*: permanent folder containing GetPileupSummaries tool's output (best normal sample's pileup summary info).
+- *results/project_name/RNA/RNA_somatic_mutation/FilterMutectCalls*: permanent folder containing FilterMutectCalls tool's output, **final files (vcf format) used to discriminate true RNA somatic mutations**, applicable for other filtering strategy. 
+- *results/project_name/RNA/RNA_somatic_mutation/Funcotator/SNP*: permanent folder containing Funcotator's annnotation info for raw RNA SNP calls. 
+- *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval*: permanent folder containing raw RNA SNP calls subsetted via given WES target intervals. 
+- *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval_exon*: permanent folder containing **final** raw RNA SNP calls subsetted by given WES target intervals and exon regions**.
+
+Pipeline explaination
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Essential codes
+------------------
+
+- *rules/RNA_Somatic-tsv-Snakefile.smk* & *rules/RNA_Somatic-tsv-Snakefile-force-call.smk*: snakemake-style codes to describe our whole RNA somatic mutation calling pipeline (modify at your own risk!!!). 
+- *lib/own_data_vcf_info_retriver.py*&*lib/force_call_data_vcf_info_retriver.py*: python codes to extract features (variant, genotype and annotation level) from different data sources. 
+- *model_utilize.py*: python codes to predict the probability and labels of given Mutect2 calls. 
+
+Pre-trained models
+----------------------
+
+- *models/exon_RNA_analysis_newer.one_hot_encoder*: one-hot encoder which adapted to following model. 
+- *models/exon_RNA_analysis_newer.model*: random forest discriminant model trained using whole TCGA LUAD project data. 
+- *exon_RNA_analysis_newer.training_data_col*: column names used in model training and prediction
+
+Resource files
+------------------
+
+- *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets. (canonical for TCGA projects)
+- *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. 
 
 Q & A
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
