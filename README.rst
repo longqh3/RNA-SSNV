@@ -80,7 +80,7 @@ In case of folders got locked after accidental disruption, *--unlock* and *--rer
 Extract features for raw RNA somatic mutations
 -----------------------------------------------
 
-All parameters should be files/folders' absolute paths. 
+All parameters should be files or folders' absolute paths. 
 
 .. code:: sh
 
@@ -194,46 +194,44 @@ Step 2: Combine force-called results with RNA somatic mutations to finish RNA-DN
     --training_columns_path models/exon_RNA_analysis_newer.training_data_col \
     --output_file_path {your_specified_final_table_path}
 
-P.S. Train your own discriminant model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Train your own discriminant model
+----------------------------------------------------------------------------------------
 
-Although we used 511 cases of TCGA LUAD RNA-WES paired data to train our discriminant model, other non-cancerous RNA somatic mutations or non-bulk RNA-Seq data may exhibit **different patterns of FP calls**. In that case, our model may not served as expected, and a customized model was required to be trained on your own. 
+Although we used 511 cases of TCGA LUAD RNA-WES paired data to train our discriminant model, other non-cancerous RNA somatic mutations or non-bulk RNA-Seq (other sequencing technology) may exhibit **different patterns of FP calls**. In that case, our model may not served as expected, and a customized model can be trained on your own. 
 
 Data-preparation
---------------------
+^^^^^^^^^^^^^^^^^^^
 
-- Gold-standard TP mutations for given project (maf-format) with required five columns: "Chromosome", "Start_Position", "Tumor_Allele2", "Tumor_Allele1", "Tumor_Sample_UUID"
+- Gold-standard TP mutations for your project (maf-format) with required five columns: "Chromosome", "Start_Position", "Tumor_Allele2", "Tumor_Allele1", "Tumor_Sample_UUID"
 
 Train customized model
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Training on a particular sequencing technology may not transfer to another. In that case, uses suspecting an different sequencing pattern can use their own data to train the customized model. 
-
-- Using gold-standard TP mutations with their corresponding RNA somatic mutations to train customized model. The performance matrix for model training will be generated. 
+- Using gold-standard TP mutations with their corresponding RNA somatic mutations to train customized model. The performance matrix for model training will be generated in the output information. 
 
   .. code:: sh
     
     # run feature-extraction codes
     python lib/own_data_vcf_info_retriver.py \
-    --cancer_type BLCA \
-    --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
-    --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
-    --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-    --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
-    --num_threads 60
+    --cancer_type {your_cancer_type} \
+    --RNA_calling_info {your_RNA_calling_info} \
+    --project_folder {your_project_folder} \
+    --exon_interval resources/GRCh38_GENCODE_v22_exon_rm_alt.bed \
+    --output_table_path {your_specified_feature_table_path} \
+    --num_threads {num_of_threads}
 
     # train your own model
-    python /home/lqh/Codes/Python/RNA-SSNV/own_model_construct.py \
-    --REDIportal /home/lqh/resources/database/RNA_edit/REDIportal/REDIportal_main_table.hg38.bed \
-    --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
-    --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
-    --DNA_mutations /home/lqh/Codes/Data/TCGA_maf_files/TCGA-LUAD \
-    --model_folder_path /home/lqh/Codes/Python/RNA-SSNV/model
+    python own_model_construct.py \
+    --REDIportal resources/REDIportal_main_table.hg38.bed \
+    --DARNED resources/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
+    --raw_RNA_mutations {your_specified_feature_table_path} \
+    --DNA_mutations {your_DNA_mutations} \
+    --model_folder_path {your_specified_folder_path_to_store_trained_model}
 
 Utilize customized model
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Back to the beginning of our pipeline, edit the **model** path within config file, start our pipeline and good to go!
+- Back to the beginning of our pipeline, edit the **model** absolute path, start our framework and good to go!
 
 Output folders & files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -280,19 +278,3 @@ Resource files
 
 - *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets. (canonical for TCGA projects)
 - *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. 
-
-Q & A
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Process failed
---------------------
-
-Check your log file with `grep -C 10 your_log_file.log` 
-
-Advanced utilization
----------------------
-
-Modify entry shell scripts
---------------------------
-
-- *scripts/project_RNA_somatic-tsv-qsub.sh*: shell script as entry command for whole project, modify it accordingly (support PBS task management system).
