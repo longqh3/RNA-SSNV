@@ -1,9 +1,9 @@
 RNA-SSNV
 =======================================================
 
-The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutation detection from RNA-WES(tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and multi-filtering strategy & Machine-learning based model to maximize precision & recall performance. It runs highly automated once snakemake and related configs & infos get configurated properly. It reports an aggregated mutation file (maf format) to facilitate downstream analysis and clinical decision. 
+The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutation detection from RNA-WES (tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and Multi-filtering strategy & Machine-learning based model to maximize precision & recall performance. It runs highly automated once related configs & infos get configurated properly. It reports an aggregated mutation file (standard maf format) to facilitate downstream analysis and clinical decision. 
 
-Important!!! This is the github repository storing manual and necessary codes for RNA-SSNV. The practical application was located within our `onedrive storage <https://github.com/broadinstitute/gatk/releases/download/4.1.6.0/gatk-4.1.6.0.zip>`_. 
+Important!!! This is the github repository storing **manual** and necessary codes for RNA-SSNV. The practical application was located within our `onedrive storage <https://github.com/broadinstitute/gatk/releases/download/4.1.6.0/gatk-4.1.6.0.zip>`_. 
 
 .. image:: ./media/Github_code_structure_low_resolution.png
    :alt: RNA-SSNV Framework
@@ -12,21 +12,8 @@ Important!!! This is the github repository storing manual and necessary codes fo
 Pre-requirements
 ~~~~~~~~~~~~~~~~~
 
-Download codes
-----------------------
-
-.. code:: sh
-    
-  git clone https://github.com/longqh3/RNA-SSNV
-
-Required Softwares
-----------------------
-
-Beware, all the following softwares should be added into **environmental variables** (*~/.bashrc*, *~/.bash_profile*, etc)
-
-- GATK-v4.1.6.0
-  
-  `Official download link <https://github.com/broadinstitute/gatk/releases/download/4.1.6.0/gatk-4.1.6.0.zip>`_ & `Back-up download link <http://link>`_ 
+Required Python Packages
+--------------------------
 
 - Snakemake-v5.10.0
 
@@ -34,10 +21,7 @@ Beware, all the following softwares should be added into **environmental variabl
 
     pip install snakemake==5.10.0
 
-- Python packages: 
-    
-    - scikit-learn: v4.1
-
+- Other Python packages: 
 
   .. code:: sh
 
@@ -47,7 +31,6 @@ Beware, all the following softwares should be added into **environmental variabl
 Modify config & table file
 ---------------------------
 
-- *configs/project_config.yaml*: pipeline-related configurations, modify it accordingly. 
 - *tables/project_RNA_somatic_calling_info.tsv*: project-related sequencing data information, modify under following instruction.
 
 .. list-table:: Project RNA somatic calling  sample info
@@ -61,31 +44,22 @@ Modify config & table file
       - case_id
       - sample_type
     * - Name of bam file
-      - Name of folder which contains bam file
+      - Name of specific folder which contains bam file
       - ID of aliquot sequenced
-      - ID of corresponding case
-      - Type of aliquot's origin
+      - ID of corresponding patient's case
+      - Type of aliquot's origin. Be ware, tumor sample should be "Primary Tumor", paired-normal sample should be "Solid Tissue Normal" or "Blood Derived Normal". "Best Normal" sample **must** be included to support multi-sample calling. 
 
-Modify entry shell scripts
---------------------------
+- *configs/project_config.yaml*: pipeline-related configurations, modify it accordingly. 
 
-- *scripts/project_RNA_somatic-tsv-qsub.sh*: shell script as entry command for whole project, modify it accordingly (support PBS task management system).
-
-Select interval files
----------------------
-
-- *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets, canonical for TCGA projects. (change it with your own WES target interval file)
-- *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. (change it with your own exon regions of interest)
-
-  All interval files should be *bed* format and contain column names for "*chr*  *start* *end*". 
-
-Run Pipeline
+Run Framework
 ~~~~~~~~~~~~~~~
 
-Once configurated correctly, our pipeline is ready to go. Please execute the following commands step by step, make sure everything works normally before moving forward. 
+Once configurated correctly, our pipeline is ready to go. Please execute the following commands step by step, make sure everything works smoothly before moving forward. 
 
 Call and annotate raw RNA somatic mutations
 -----------------------------------------------
+
+We assume that available RNA&DNA sequence data for common users were **aligned** RNA-seq data (bam format) and **co-cleaned analysis-ready** DNA-seq data (bam format) which were standard pre-process for TCGA. Once user correctly configurated our framework, calling and annotate raw RNA somatic mutations will be automatically conducted. 
 
 .. code:: sh
     
@@ -99,35 +73,39 @@ Call and annotate raw RNA somatic mutations
     -s rules/RNA-Somatic-tsv-Snakefile.smk \
     --configfile configs/project_RNA_Somatic_config.yaml
 
-Beware, owing to the breakpoint-run feature of snakemake, our pipeline also supports taking any final files (listed below) as starting point. 
+Beware, thanks to the **breakpoint-run** feature of snakemake, our framework can save process-finished files and delete corrupted files automatically when accidental disruption (power failure or unintended termination) occurred. Just re-run the command and our framework will continue its unfinished works. 
 
-Prepare features for raw RNA somatic mutations
+In case of folders got locked after accidental disruption, *--unlock* option can be added during dry run to unlock corresponding folders.
+
+Extract features for raw RNA somatic mutations
 -----------------------------------------------
+
+All parameters should be files/folders' absolute paths. 
 
 .. code:: sh
 
     # run feature-extraction codes
     python lib/own_data_vcf_info_retriver.py \
     --cancer_type {your_specified_cancer_type} \
-    --RNA_calling_info tables/project_RNA_somatic_calling_info.tsv \
-    --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
-    --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-    --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
-    --num_threads 60
+    --RNA_calling_info {your_RNA_calling_info} \
+    --project_folder {your_project_folder} \
+    --exon_interval {your_exon_interval} \
+    --output_table_path {your_specified_feature_table_path} \
+    --num_threads {num_of_threads}
 
 Predict reliable RNA somatic mutations
 ------------------------------------------
 
-For the generated result, the records with *pred_label* being 1 should be considered as reliable RNA somatic mutations. 
+For the generated result, records with **pred_label** being 1 should be considered as reliable RNA somatic mutations which were predicted to be positive with default 0.5 threshold. 
 
 .. code:: sh
 
     # run model predicting codes
     python /home/lqh/Codes/Python/RNA-SSNV/model_utilize.py \
-    --REDIportal /home/lqh/resources/database/RNA_edit/REDIportal/REDIportal_main_table.hg38.bed \
-    --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
-    --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
-    --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
+    --REDIportal resources/REDIportal_main_table.hg38.bed \
+    --DARNED resources/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
+    --raw_RNA_mutations {your_specified_feature_table_path} \
+    --model_path model/exon_RNA_analysis_newer.model \
     --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
     --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
     --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table
@@ -302,3 +280,11 @@ Process failed
 --------------------
 
 Check your log file with `grep -C 10 your_log_file.log` 
+
+Advanced utilization
+---------------------
+
+Modify entry shell scripts
+--------------------------
+
+- *scripts/project_RNA_somatic-tsv-qsub.sh*: shell script as entry command for whole project, modify it accordingly (support PBS task management system).

@@ -102,8 +102,7 @@ rule base_reclibrate:
         bam = "marked_duplicates/{aliquots_id}.bam",
         ref = config["ref"]["genome"],
         kgSNP = config["ref"]["variant"]["kgSNP"],
-        kgINDEL = config["ref"]["variant"]["kgINDEL"],
-        dbSNP = config["ref"]["variant"]["dbSNP"]
+        kgINDEL = config["ref"]["variant"]["kgINDEL"]
     output:
         table = "base_reclibrate/{aliquots_id}.table"
     threads: 4
@@ -116,7 +115,6 @@ rule base_reclibrate:
         -R {input.ref} \
         --known-sites {input.kgSNP} \
         --known-sites {input.kgINDEL} \
-        --known-sites {input.dbSNP} \
         -O {output.table}
         """
 
