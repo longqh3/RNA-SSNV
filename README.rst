@@ -15,17 +15,9 @@ Pre-requirements
 Required Python Packages
 --------------------------
 
-- Snakemake-v5.10.0
+.. code:: sh
 
-  .. code:: sh
-
-    pip install snakemake==5.10.0
-
-- Other Python packages: 
-
-  .. code:: sh
-
-    pip install -r requirements.txt
+  pip install -r requirements.txt
 
 
 Modify config & table file
