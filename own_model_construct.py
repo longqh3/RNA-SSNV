@@ -290,9 +290,7 @@ class exon_RNA_analysis_newer(object):
         add attribute: "X_train", "X_holdout", "y_train", "y_holdout"
         """
 
-        self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17)    #划分原数据：分为训练数据，测试数据，训练集标签和测试集标签
-
-        # self.X_train.hist(figsize=(20, 15), color='c')
+        self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17) # Split all data into training and testing (holdout) features, labels.
 
     def common_RF_build(self):
         """Build a weighted random forest model tuned by Grid-Search through 10x cross-validation.

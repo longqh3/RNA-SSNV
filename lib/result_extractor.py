@@ -60,13 +60,13 @@
 # --cancer_type LUSC
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.table \
 # --Tag DNA_only \
 # --Sub_Tag force_called \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
+# --output_type simple_maf \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.driver_gene.simple.table \
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type GBM
+# --cancer_type BLCA
 #
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \

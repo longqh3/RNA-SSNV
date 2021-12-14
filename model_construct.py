@@ -6,8 +6,8 @@
 # --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
 # --GDC_mutations /home/lqh/Codes/Data/TCGA_maf_files/TCGA-LUAD \
 # --WES_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/WXS/WXS_somatic_mutation/VariantsToTable/PASS_SNP_WES_Interval_exon.table \
-# --model_folder_path /home/lqh/Codes/Python/RNA-SSNV/model \
-# --num_threads 20
+# --model_folder_path /home/lqh/Codes/Python/RNA-SSNV/test \
+# --num_threads 80
 
 # Basic packages
 import os
@@ -16,8 +16,6 @@ import numpy as np
 import pandas as pd
 # Data analysis packages
 ## Models
-from sklearn.feature_selection import RFECV
-from sklearn import decomposition
 from sklearn.ensemble import RandomForestClassifier
 ## Data pre-process
 from sklearn import preprocessing
@@ -25,17 +23,14 @@ from sklearn.model_selection import train_test_split
 ## Data training
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import GridSearchCV
+from sklearn.feature_selection import RFECV
 ## Model assessing
 from sklearn.metrics import *
 # Visualize
 import matplotlib.pyplot as plt
-import seaborn as sns
 # Others
 import joblib
 import warnings
-# Model explanation
-import lime
-import lime.lime_tabular
 
 import argparse
 warnings.filterwarnings('ignore')
@@ -310,18 +305,49 @@ class exon_RNA_analysis(object):
         Check for alll features' distribution using histogram.
         add attribute: "X_train", "X_holdout", "y_train", "y_holdout"
         """
-        
-        self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17)    #划分原数据：分为训练数据，测试数据，训练集标签和测试集标签
 
-        # self.X_train.hist(figsize=(20, 15), color='c')
+        self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17) # Split all data into training and testing (holdout) features, labels.
+
+    def common_RF_feature_selection(self):
+        """Using RFECV strategy to conduct feature selection and retrieve optimal training dataset
+        add attribute: "RFE_feature_select_select"
+        """
+
+        default_rf_model = RandomForestClassifier(random_state=1, n_jobs=self.num_threads, class_weight="balanced")
+
+        print(f"Before feature selection process, feature count was {len(self.X_train.columns)}")
+        print(f"Detailed features were: '{list(self.X_train.columns)}'")
+        print("Feature selection using RFECV has been initialized......")
+        self.RFE_feature_select_select = RFECV(default_rf_model, step=1, cv=10,
+                                   scoring="f1", verbose=1, n_jobs=self.num_threads, min_features_to_select=1)
+        self.RFE_feature_select_select = self.RFE_feature_select_select.fit(self.X_train, self.y_train)
+        self.selected_columns = [self.X_train.columns[i] for i in range(len((self.RFE_feature_select_select.support_))) if self.RFE_feature_select_select.support_[i]]
+        print(f"After feature selection process, optimal feature count was {self.RFE_feature_select_select.n_features_}")
+        print(f"Detailed features were: '{self.selected_columns}'")
+        print(f"Detailed feature selection performance was: {self.RFE_feature_select_select.grid_scores_}")
+        print(f"{set(self.X_train.columns) - set(self.selected_columns)} features were removed.")
+        print(f"After feature selection, accuracy was {self.RFE_feature_select_select.score(self.X_train, self.y_train)} for training dataset "
+              f"and {self.RFE_feature_select_select.score(self.X_holdout, self.y_holdout)} for testing dataset. ")
+
+        print("Store feature selection performance plot.")
+        plt.figure()
+        plt.xlabel("Number of features selected")
+        plt.ylabel("Cross validation score (F1 score)")
+        plt.plot(range(1, len(self.RFE_feature_select_select.grid_scores_) + 1), self.RFE_feature_select_select.grid_scores_)
+        plt.show()
+        plt.savefig(os.path.join(args.model_folder_path, "feature_selection_performance.svg"))
+
+        print("Convert training and testing dataset.")
+        self.X_train = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_train), columns = self.selected_columns)
+        self.X_holdout = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_holdout), columns = self.selected_columns)
+
+        print("="*100)
 
     def common_RF_build(self):
         """Build a weighted random forest model tuned by Grid-Search through 10x cross-validation.
         Primary model assessment using testing dataset
         add attribute: "rf_gcv"
         """
-
-        # model training
 
         skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=17)  # set up 10x cross-validation
         rfc_params = {'n_estimators': [i * 100 for i in range(13, 14)],
@@ -431,6 +457,9 @@ if __name__ == '__main__':
 
     # split data into training and testing datasets
     common_RF_exon.data_prepare()
+
+    # feature selection for optimal features
+    common_RF_exon.common_RF_feature_selection()
 
     # train weighted random forest model
     common_RF_exon.common_RF_build()
