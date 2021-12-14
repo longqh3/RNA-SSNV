@@ -1,12 +1,17 @@
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_total.table
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/test/GBM.DNA_only.table \
+# --add_type DNA \
+# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
+# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
+# --num_threads 40
 
 # --pred_label 1 \
 
 import pandas as pd
 import os
 from multiprocessing import Pool
+from multiprocessing import Manager
 import pysam
 
 import argparse
@@ -20,18 +25,19 @@ parser.add_argument('--output_info', help='Result info after adding infos')
 parser.add_argument('--add_type', help='Type of info to add into result table.')
 parser.add_argument("--DNA_calling_info", help="Tabular info for DNA somatic mutation calling.")
 parser.add_argument('--DNA_tumor_folder', help='DNA tumor bam folder path.')
+parser.add_argument('--num_threads', '-nt', type=int, help='Number of threads allowed.')
 
 args = parser.parse_args()
 
 # tool functions
-# 根据vcf文件中单个record的突变信息，获取所有特定case的DNA肿瘤样本中var最大AD及其他相应信息，其返回值纳入其他信息的dataframe中
-def DNA_tumor_bam_record_retrive(record, samfile_list):
+def DNA_tumor_bam_record_retrive(case_result_row, samfile_list):
+    # 根据vcf文件中单个record的突变信息，获取所有特定case的DNA肿瘤样本中var最大AD及其他相应信息，其返回值纳入其他信息的dataframe中
     try:
         # 获取基本信息
-        ref = record.REF
-        alt = record.ALT[0]
-        chrom = record.CHROM
-        position = record.POS
+        ref = case_result_row['Reference_Allele']
+        alt = case_result_row['Tumor_Allele1']
+        chrom = case_result_row['Chromosome']
+        position = case_result_row['Start_Position']
         # 获取每个bam文件中对应的碱基coverage信息
         other_coverage_list = []
         # 应用首个bam文件中coverage信息完成初始化(设置base的最低质量值为30)
@@ -83,26 +89,56 @@ def count_coverage_decompose(count_coverage_info):
         print(ex)
         print("count_coverage_decompose错误！！！")
 
+def print_error(value):
+    print("error: ", value)
+
 # main functions
+def add_DNA_coverage_info(case_result_info, case_id, DNA_calling_info, DNA_tumor_folder_path, result_list):
+    print(f"Start to retrieve DNA coverage info from {case_id} case...")
+    # determine aliquots ids for tumor DNA sequence data
+    DNA_tumor_case_df = DNA_calling_info.loc[
+        (DNA_calling_info['case_id'] == case_id) & (DNA_calling_info['sample_type'] == "Primary Tumor"), ['file_id', 'file_name', 'aliquots_id']]
+    DNA_tumor_case_file_paths = DNA_tumor_folder_path + "/" + DNA_tumor_case_df['file_id'] + "/" + DNA_tumor_case_df['file_name']
+    # read in all case_id's corresponding DNA tumor bam files and store objects into a list
+    samfile_list = [pysam.AlignmentFile(DNA_tumor_case_file_path, "rb") for DNA_tumor_case_file_path in DNA_tumor_case_file_paths]
+    # retrieve all mutations' optimal DNA coverage info
+    DNA_coverage_info = list()
+    for i in case_result_info.index:
+        DNA_coverage_info.append(list(DNA_tumor_bam_record_retrive(case_result_info.loc[i, ], samfile_list)))
+    DNA_coverage_info = pd.DataFrame(DNA_coverage_info, columns=['ref_AD_tumor_DNA', 'alt_AD_tumor_DNA', 'other_AD_tumor_DNA'])
+    # concat corresponding info back into result info
+    case_result_info['ref_AD_tumor_DNA'] = list(DNA_coverage_info['ref_AD_tumor_DNA'])
+    case_result_info['alt_AD_tumor_DNA'] = list(DNA_coverage_info['alt_AD_tumor_DNA'])
+    case_result_info['other_AD_tumor_DNA'] = list(DNA_coverage_info['other_AD_tumor_DNA'])
+
+    result_list.append(case_result_info)
 
 
 if __name__ == '__main__':
     result_info = pd.read_table(args.result_info)
+    num_threads = args.num_threads
 
     if args.add_type == "DNA":
+        DNA_calling_info = pd.read_table(args.DNA_calling_info)
+        DNA_tumor_folder_path = args.DNA_tumor_folder
+
         # 开始多进程处理
         print('Parent process %s.' % os.getpid())
-        p = Pool(args.num_threads)
-        # 遍历每一个case(直接用set()也可以= =)
+        p = Pool(num_threads)
+        manager = Manager()
+        result_list = manager.list()
+        # 遍历每一个case
         for case_id in result_info["Tumor_Sample_UUID"].value_counts().index:
             case_result_info = result_info.loc[result_info['Tumor_Sample_UUID']==case_id, ]
-            p.apply_async(case_vcf_info_retrive, args=(
-            tumor_tsv, single_case_id, vcf_folder_path, table_folder_path, DNA_tumor_tsv, DNA_tumor_folder,
-            Exon_loc,
-            funcotator_folder_path))
+            p.apply_async(add_DNA_coverage_info, args=(
+            case_result_info, case_id, DNA_calling_info, DNA_tumor_folder_path, result_list), error_callback=print_error)
         print('Waiting for all subprocesses done...')
         p.close()
         p.join()
         print('All subprocesses done.')
 
-output_info.to_csv(args.output_info, sep="\t", index=False)
+        result_list = list(result_list)
+        # concat corresponding info back into result info
+        output_info = pd.concat(result_list)
+
+        output_info.to_csv(args.output_info, sep="\t", index=False)

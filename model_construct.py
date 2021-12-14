@@ -313,7 +313,7 @@ class exon_RNA_analysis(object):
         add attribute: "RFE_feature_select_select"
         """
 
-        default_rf_model = RandomForestClassifier(random_state=1, n_jobs=self.num_threads, class_weight="balanced")
+        default_rf_model = RandomForestClassifier(random_state=17, n_jobs=self.num_threads, class_weight="balanced")
 
         print(f"Before feature selection process, feature count was {len(self.X_train.columns)}")
         print(f"Detailed features were: '{list(self.X_train.columns)}'")
@@ -329,12 +329,14 @@ class exon_RNA_analysis(object):
         print(f"After feature selection, accuracy was {self.RFE_feature_select_select.score(self.X_train, self.y_train)} for training dataset "
               f"and {self.RFE_feature_select_select.score(self.X_holdout, self.y_holdout)} for testing dataset. ")
 
-        print("Store feature selection performance plot.")
+        print("Store feature selection performance metric and plot.")
         plt.figure()
         plt.xlabel("Number of features selected")
         plt.ylabel("Cross validation score (F1 score)")
         plt.plot(range(1, len(self.RFE_feature_select_select.grid_scores_) + 1), self.RFE_feature_select_select.grid_scores_)
         plt.show()
+        feature_selection_metric = pd.DataFrame([range(1, len(self.RFE_feature_select_select.grid_scores_) + 1), list(self.RFE_feature_select_select.grid_scores_)], index=['feature_count', 'cross_validated_f1_score'])
+        feature_selection_metric.to_csv(os.path.join(args.model_folder_path, "feature_selection_performance.metric"), sep="\t")
         plt.savefig(os.path.join(args.model_folder_path, "feature_selection_performance.svg"))
 
         print("Convert training and testing dataset.")
@@ -436,7 +438,7 @@ class exon_RNA_analysis(object):
             joblib.dump(self.rf_gcv.best_estimator_, f, compress=3)  # save model
         with open(os.path.join(model_folder_path, self.__class__.__name__ + '.one_hot_encoder'), 'wb') as f:
             joblib.dump(self.enc, f)  # save encoder
-        pd.DataFrame(pd.Series(self.training_data.columns)).to_csv(os.path.join(model_folder_path, self.__class__.__name__ + '.training_data_col'), index=False)  # save features
+        pd.DataFrame(pd.Series(self.X_train.columns)).to_csv(os.path.join(model_folder_path, self.__class__.__name__ + '.training_data_col'), index=False)  # save features
 
 if __name__ == '__main__':
     # read in all required files
