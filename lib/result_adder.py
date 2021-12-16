@@ -1,9 +1,9 @@
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.DNA_coverage.table \
 # --add_type DNA \
-# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
-# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
+# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUSC_WXS_somatic_calling_info.tsv \
+# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUSC \
 # --num_threads 80
 
 
@@ -72,8 +72,7 @@ def DNA_tumor_bam_record_retrive(case_result_row, samfile_list):
                 other_coverage_list.append(str(current_ref_coverage) + "/" + str(current_alt_coverage))
         return optimal_ref_coverage, optimal_alt_coverage, ";".join(other_coverage_list)
     except Exception as ex:
-        print(ex)
-        print("DNA_tumor_bam_record_retrive错误！！！")
+        print(f"For {case_result_row['Reference_Allele']}>{case_result_row['Tumor_Allele1']}, DNA_tumor_bam_record_retrive failed and emitted null values.")
 
         return np.NaN, np.NaN, ""
 
