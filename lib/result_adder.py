@@ -1,10 +1,10 @@
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/test/GBM.DNA_only.table \
-# --add_type DNA \
-# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
-# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
-# --num_threads 40
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/test/GBM.table \
+--add_type DNA \
+--DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
+--DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
+--num_threads 80
 
 # --pred_label 1 \
 
