@@ -1,10 +1,11 @@
+# Test successful
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/own_data_vcf_info_retriver.py \
-# --cancer_type BLCA \
-# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv \
+# --cancer_type GBM \
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_RNA_somatic_calling_info.tsv \
 # --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
 # --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
-# --num_threads 60
+# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+# --num_threads 80
 
 # 特征提取核心代码
 # 提取待分析的文件夹内所有突变vcf文件中的所有位点
@@ -53,8 +54,6 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
         case_id: Specific case id.
         vcf_folder_path: A path to the vcf folder containing case's vcf file (format: vcf.gz).
         table_folder_path: A path to the table folder which will store case's feature-info table.
-        DNA_tumor_tsv: A tsv file containing DNA somatic calling info.
-        DNA_tumor_folder_path: A path to the bam folder containing case's DNA tumor bam.
         Exon_loc: A path to the bed file containing all GENCODE v22's exon info.
         funcotator_folder_path: A path to the maf folder containing case's annotation maf info.
 
@@ -140,13 +139,12 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
 
         # 导出case table文件至对应文件夹中
         all_record_df.to_csv(os.path.join(table_folder_path, case_id+".table"), sep="\t", index=False)
-        return all_record_df
+
     except Exception as ex:
         print(ex.args)
         print(traceback.format_exc())
         print("case_vcf_info_retrive function had failed!!!")
         print(f"其对应case信息为{case_id}")
-
 
 # 其实这里也是偷懒，为了避免不同特征间合并起来的困难而在一个函数中进行
 # 选择vcf文件中单个record内RNA肿瘤样本var最大AD、正常样本ref最大AD
@@ -236,10 +234,10 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
                         ]
         return tmp_vcf_info
     except Exception as ex:
-        # print("record_select错误！！！对应Record信息如下所示")
-        # print(record)
-        # print(record.INFO)
-        # print(f"其对应case信息为{case_id}")
+        print("record_select错误！！！对应Record信息如下所示")
+        print(record)
+        print(record.INFO)
+        print(f"其对应case信息为{case_id}")
 
         tmp_vcf_info = [record.CHROM, record.POS, record.REF, ",".join([str(alt) for alt in record.ALT]),
                         record.REF, case_id,
@@ -262,7 +260,6 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
                         record.INFO['SOR'], record.INFO['ROQ']
                         ]
         return tmp_vcf_info
-
 
 # 根据vcf文件中单个record的突变信息，获取所有特定case的DNA肿瘤样本中var最大AD及其他相应信息，其返回值纳入其他信息的dataframe中
 def DNA_tumor_bam_record_retrive(record, samfile_list):
@@ -309,7 +306,6 @@ def DNA_tumor_bam_record_retrive(record, samfile_list):
         print(ex)
         print("DNA_tumor_bam_record_retrive错误！！！")
 
-
 # 将pysam中count_coverage函数的返回值转换为字典形式
 def count_coverage_decompose(count_coverage_info):
     try:
@@ -323,7 +319,6 @@ def count_coverage_decompose(count_coverage_info):
     except Exception as ex:
         print(ex)
         print("count_coverage_decompose错误！！！")
-
 
 # 根据record中的chrom pos来确定exon位置
 def Exon_region_create(Exon_loc):
@@ -412,6 +407,6 @@ if __name__ == '__main__':
     p.join()
     print('All subprocesses done.')
     # 汇总多进程处理后结果——本质上是对所提供vcf文件对应突变位点信息的集合汇总（因为本代码是基于每个突变vcf文件内的所有位点进行分析）
-    single_vcf_info_list = [pd.read_table(os.path.join(os.path.join(table_folder_path, single_case_id+".table"))) for single_case_id in tumor_tsv["case_id"].value_counts().index]
-    all_vcf_info = pd.concat(single_vcf_info_list, ignore_index=True)
+    single_vcf_info_list = [pd.read_table(os.path.join(os.path.join(table_folder_path, single_case_id+".table"))) for single_case_id in sorted(list(tumor_tsv["case_id"].value_counts().index))]
+    all_vcf_info = pd.concat(single_vcf_info_list)
     all_vcf_info.to_csv(f"/home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/{CANCER_TYPE}/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt", sep="\t", index=False)

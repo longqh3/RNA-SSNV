@@ -5,7 +5,8 @@
 # --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
 # --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
 # --DNA_mutations /home/lqh/Codes/Data/TCGA_maf_files/TCGA-LUAD \
-# --model_folder_path /home/lqh/Codes/Python/RNA-SSNV/model
+# --model_folder_path /home/lqh/Codes/Python/RNA-SSNV/model \
+# --num_threads 80
 
 # Basic packages
 import os
@@ -19,6 +20,7 @@ from sklearn.ensemble import RandomForestClassifier  # 导入随机森林算法
 from sklearn import preprocessing  # 导入数据预处理包
 from sklearn.model_selection import train_test_split  # 导入训练集和测试集划分函数tain_test_split
 ## Data training
+from sklearn.feature_selection import RFECV
 from sklearn.model_selection import StratifiedKFold     #导入将数据划分函数StratifiedKFold
 from sklearn.model_selection import GridSearchCV    #导入网格搜索自动调参函数GridSearchCV
 ## Model assessing
@@ -49,16 +51,15 @@ args=parser.parse_args()
 
 # Specify variables to be dropped before building own training dataset
 DROP_COLUMNS = ['Attribute', 'Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1', 'Tumor_Allele2',
-             'Tumor_Sample_UUID', "ref_AD_tumor_DNA", "alt_AD_tumor_DNA",
-             "AD_other_RNA_tumor", "AD_other_normal", "AD_other_DNA_tumor",
+             'Tumor_Sample_UUID',
+             "AD_other_RNA_tumor", "AD_other_normal",
              "transcript_ID",
              "Tumor_Seq_Allele2", "Hugo_Symbol", "Variant_Classification",
              "Gencode_28_secondaryVariantClassification", "HGNC_Ensembl_Gene_ID",
              "Reference_Allele", "ref_context",
              'Strand', 'Transcript_Strand', 'Codon_Change', 'Protein_Change', 'DrugBank',
              'record_filter',
-             'COSMIC_total_alterations_in_gene',
-             'AS_UNIQ_ALT_READ_COUNT']
+             'COSMIC_total_alterations_in_gene']
 
 # Hard-code rules for base changes
 ALLELE_CHANGE_DICT = {
@@ -111,7 +112,7 @@ def RNA_EDIT_process(REDIportal, DARNED):
     # Pre-process database info to extract required sites info
     REDIportal_info = REDIportal_info[[0, 2]]
     DARNED_info = DARNED_info[[0, 2]]
-    print(f"REDIportal and DARNED database contained {len(REDIportal_info)}和{len(DARNED_info)} RNA editing sites respectively")
+    print(f"REDIportal and DARNED database contained {len(REDIportal_info)} and {len(DARNED_info)} RNA editing sites respectively")
     # Merge sites info  from two databases
     RNA_EDIT_INFO = pd.concat([REDIportal_info, DARNED_info], ignore_index=True)
     RNA_EDIT_INFO.columns = ["Chromosome", "Start_Position"]
@@ -292,6 +293,44 @@ class exon_RNA_analysis_newer(object):
 
         self.X_train, self.X_holdout, self.y_train, self.y_holdout = train_test_split(self.training_data, self.y, test_size=0.1, random_state=17) # Split all data into training and testing (holdout) features, labels.
 
+    def common_RF_feature_selection(self):
+        """Using RFECV strategy to conduct feature selection and retrieve optimal training dataset
+        add attribute: "RFE_feature_select_select"
+        """
+
+        skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=17)  # set up 10x cross-validation
+        default_rf_model = RandomForestClassifier(random_state=17, n_jobs=self.num_threads, class_weight="balanced")
+
+        print(f"Before feature selection process, feature count was {len(self.X_train.columns)}")
+        print(f"Detailed features were: '{list(self.X_train.columns)}'")
+        print("Feature selection using RFECV has been initialized......")
+        self.RFE_feature_select_select = RFECV(default_rf_model, step=1, cv=skf,
+                                   scoring="f1", verbose=1, n_jobs=self.num_threads, min_features_to_select=1)
+        self.RFE_feature_select_select = self.RFE_feature_select_select.fit(self.X_train, self.y_train)
+        self.selected_columns = [self.X_train.columns[i] for i in range(len((self.RFE_feature_select_select.support_))) if self.RFE_feature_select_select.support_[i]]
+        print(f"After feature selection process, optimal feature count was {self.RFE_feature_select_select.n_features_}")
+        print(f"Detailed features were: '{self.selected_columns}'")
+        print(f"Detailed feature selection performance was: {self.RFE_feature_select_select.grid_scores_}")
+        print(f"{set(self.X_train.columns) - set(self.selected_columns)} features were removed.")
+        print(f"After feature selection, accuracy was {self.RFE_feature_select_select.score(self.X_train, self.y_train)} for training dataset "
+              f"and {self.RFE_feature_select_select.score(self.X_holdout, self.y_holdout)} for testing dataset. ")
+
+        print("Store feature selection performance metric and plot.")
+        plt.figure()
+        plt.xlabel("Number of features selected")
+        plt.ylabel("Cross validation score (F1 score)")
+        plt.plot(range(1, len(self.RFE_feature_select_select.grid_scores_) + 1), self.RFE_feature_select_select.grid_scores_)
+        plt.show()
+        feature_selection_metric = pd.DataFrame([range(1, len(self.RFE_feature_select_select.grid_scores_) + 1), list(self.RFE_feature_select_select.grid_scores_)], index=['feature_count', 'cross_validated_f1_score'])
+        feature_selection_metric.to_csv(os.path.join(args.model_folder_path, "feature_selection_performance.metric"), sep="\t")
+        plt.savefig(os.path.join(args.model_folder_path, "feature_selection_performance.svg"))
+
+        print("Convert training and testing dataset.")
+        self.X_train = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_train), columns = self.selected_columns)
+        self.X_holdout = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_holdout), columns = self.selected_columns)
+
+        print("="*100)
+
     def common_RF_build(self):
         """Build a weighted random forest model tuned by Grid-Search through 10x cross-validation.
         Primary model assessment using testing dataset
@@ -308,7 +347,7 @@ class exon_RNA_analysis_newer(object):
                       'max_features': [i / 10 for i in range(4, 5)],
                       'class_weight': ["balanced"]}  # parameter combination determined by Grid-Search
         rfc = RandomForestClassifier(random_state=17, n_jobs=self.num_threads, oob_score=True)  # init weighted random forest model
-        self.rf_gcv = GridSearchCV(rfc, rfc_params, n_jobs=-1, cv=skf, scoring='f1', verbose=1)  # init Grid-Search
+        self.rf_gcv = GridSearchCV(rfc, rfc_params, n_jobs=self.num_threads, cv=skf, scoring='f1', verbose=1)  # init Grid-Search
         print("Start Grid-Searching......")
         print("Target parameter matrix was: ")
         print(rfc_params)
@@ -410,6 +449,9 @@ if __name__ == '__main__':
 
     # split data into training and testing datasets
     common_RF_exon.data_prepare()
+
+    # feature selection for optimal features
+    common_RF_exon.common_RF_feature_selection()
 
     # train weighted random forest model
     common_RF_exon.common_RF_build()
