@@ -18,14 +18,14 @@
 # --template_vcf_file /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer_.training_data_col \
 
 # 测试完成，一切正常#
-# python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
-# --step 2 \
-# --force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUSC/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
-# --instance_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC_DNA_step_1.class \
-# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
-# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
-# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
-# --output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table
+python /home/lqh/Codes/Python/RNA-SSNV/model_analyze_with_DNA.py \
+--step 2 \
+--force_call_RNA_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/BLCA/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
+--instance_path /home/lqh/Codes/Python/RNA-SSNV/output/BLCA_DNA_step_1.class \
+--model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
+--one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
+--training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
+--output_file_path /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.table
 
 # 导入相关需求包
 # basic
