@@ -172,7 +172,7 @@ Afterwards, run commands sequencially to conduct force-calling of Mutect2 to que
     --num_threads {num_of_threads}
 
 
-Step 2: Combine force-called results with RNA somatic mutations to finish RNA-DNA integrative analysis
+Step 2: Combine RNA force-called results with RNA somatic mutations to finalize RNA-DNA integrative analysis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: py
@@ -185,6 +185,20 @@ Step 2: Combine force-called results with RNA somatic mutations to finish RNA-DN
     --one_hot_encoder_path models/exon_RNA_analysis_newer.one_hot_encoder \
     --training_columns_path models/exon_RNA_analysis_newer.training_data_col \
     --output_file_path {your_specified_final_table_path}
+
+Step 3: Add DNA coverage info from DNA sequence data to compare coverages for DNA-level and RNA-level (require the existence for DNA sequence data)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: py
+
+    python lib/result_adder.py \
+    --result_info {your_specified_final_table_path} \
+    --output_info {your_specified_final_table_with_DNA_coverage_path} \
+    --add_type DNA \
+    --DNA_calling_info {your_DNA_calling_info} \
+    --DNA_tumor_folder {your_DNA_sequence_data_folder} \
+    --num_threads {num_of_threads}
+
 
 Train your own discriminant model
 ----------------------------------------------------------------------------------------

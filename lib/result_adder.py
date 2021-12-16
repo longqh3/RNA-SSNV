@@ -1,14 +1,14 @@
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
---result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table \
---output_info /home/lqh/Codes/Python/RNA-SSNV/test/GBM.table \
---add_type DNA \
---DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
---DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
---num_threads 80
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+# --add_type DNA \
+# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_WXS_somatic_calling_info.tsv \
+# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/GBM \
+# --num_threads 80
 
-# --pred_label 1 \
 
 import pandas as pd
+import numpy as np
 import os
 from multiprocessing import Pool
 from multiprocessing import Manager
@@ -74,6 +74,8 @@ def DNA_tumor_bam_record_retrive(case_result_row, samfile_list):
     except Exception as ex:
         print(ex)
         print("DNA_tumor_bam_record_retrive错误！！！")
+
+        return np.NaN, np.NaN, ""
 
 # 将pysam中count_coverage函数的返回值转换为字典形式
 def count_coverage_decompose(count_coverage_info):
