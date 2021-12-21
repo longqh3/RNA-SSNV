@@ -1,7 +1,7 @@
 # test success
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_piler.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.all.table \
 # --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_total.table
 
 # --pred_label 1 \

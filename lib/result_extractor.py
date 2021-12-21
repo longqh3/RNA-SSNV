@@ -2,12 +2,34 @@
 # Tag: RNA_DNA_overlap DNA_only RNA_only
 # pred_label: 1 0
 # output_type: simple_maf total_maf
+
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+# --Tag RNA_DNA_overlap \
+# --output_type total_maf \
+# --pred_label 1 \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.table
+
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.DNA_coverage.table \
+# --Tag RNA_only \
+# --pred_label 1 \
+# --output_type total_maf \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_only.table
+
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
 # --Tag DNA_only \
 # --Sub_Tag force_called \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.table
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table
+
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+--Tag RNA_DNA_overlap RNA_only \
+--pred_label 1 \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_total.table
 
 # --pred_label 1 \
 # --Hugo_Symbol KMT2C \
@@ -30,26 +52,6 @@
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
 # --cancer_type LUSC
 
-# --Tag RNA_DNA_overlap DNA_only
-# --Variant_Classification Missense_Mutation Nonsense_Mutation Silent \
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
-# --Tag RNA_DNA_overlap \
-# --pred_label 1 \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.driver_gene.table \
-# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type GBM
-
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
-# --Tag RNA_only \
-# --pred_label 1 \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_only.driver_gene.table \
-# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type LUSC
-
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
 # --Tag DNA_only RNA_DNA_overlap \
@@ -67,13 +69,7 @@
 # --output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.driver_gene.simple.table \
 # --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
 # --cancer_type BLCA
-#
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
-# --Tag RNA_DNA_overlap RNA_only \
-# --output_type total_maf \
-# --pred_label 1 \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.total_RNA.table
+
 
 import pandas as pd
 

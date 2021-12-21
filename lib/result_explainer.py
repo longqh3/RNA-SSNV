@@ -2,9 +2,9 @@
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
 # --explain_type dataset \
 # --data_info /home/lqh/Codes/Python/RNA-SSNV/output/LUAD.table \
-# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
-# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
-# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
+# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
+# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
+# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
 # --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.LUAD.svg
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
@@ -22,7 +22,7 @@
 # --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.model \
 # --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.one_hot_encoder \
 # --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis_newer.training_data_col \
-# --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.LUAD.svg \
+# --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.LUAD.top5.svg \
 # --specified_features STRANDQ AF_tumor TLOD ROQ ECNT
 
 
@@ -62,7 +62,7 @@ def dataset_interpret(model, dataset):
     # 计算数据集所对应的所有SHAP值
     shap_values = shap_explainer.shap_values(dataset, approximate=True)
     # 为数据集中每个样本绘制其对应特征的SHAP值，这可以更好地理解整体模式，并允许发现预测异常值
-    return shap.summary_plot(shap_values[1], dataset, show=False)
+    return shap.summary_plot(shap_values[1], dataset, max_display=100, show=False)
 
 # 工具函数8：根据给定机器学习模型，对给定数据集合和进行预测，获得预测信息
 def features_dataset_interpret(model, dataset, features):
