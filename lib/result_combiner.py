@@ -1,10 +1,10 @@
 # 与DoCM数据库数据结合分析
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_combiner.py \
---combine_type DoCM \
---result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
---DoCM_info /home/lqh/resources/database/DoCM/variants_hg38.tsv \
---cancer_type GBM \
---output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver.DoCM.table
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_combiner.py \
+# --combine_type DoCM \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
+# --DoCM_info /home/lqh/resources/database/DoCM/variants_hg38.tsv \
+# --cancer_type GBM \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver.DoCM.table
 
 # 与TMB数据结合分析
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_combiner.py \

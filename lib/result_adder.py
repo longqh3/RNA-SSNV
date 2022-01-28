@@ -1,11 +1,18 @@
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.DNA_coverage.table \
-# --add_type DNA \
-# --DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUSC_WXS_somatic_calling_info.tsv \
-# --DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUSC \
-# --num_threads 80
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.table \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_coverage.table \
+--add_type DNA \
+--DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_WXS_somatic_calling_info.tsv \
+--DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/BLCA \
+--num_threads 80
 
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_adder.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUAD.table \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUAD.DNA_coverage.table \
+--add_type DNA \
+--DNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUAD_WXS_somatic_calling_info.tsv \
+--DNA_tumor_folder /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUAD \
+--num_threads 80
 
 import pandas as pd
 import numpy as np

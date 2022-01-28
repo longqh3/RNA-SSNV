@@ -1,20 +1,3 @@
-# 核心代码
-# 应用RNA-DNA配对数据检测RNA中体细胞突变
-# 包含部分之前探索分析策略时，所添加的无用rules
-# 后期转入生产环境时，需要将其删去
-
-"""
-RNAseq short variant discovery (SNPs + Indels)
-https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels-
-GATK Best Practices — step4 转录组SNP/INDEL（RNAseq SNPs + Indels）
-https://www.jianshu.com/p/a6852891d1f4
-最新版针对RNA-seq数据的GATK找变异流程
-https://cloud.tencent.com/developer/article/1536221
-Variant calling from RNA-seq data using STAR, Picard and GATK tools
-http://rpubs.com/bhagirathi_das/494122
-MarkDuplicate过程中出现问题"Mapped mate should have mate reference name"
-https://github.com/cbrueffer/tophat-recondition/issues/1
-"""
 import pandas as pd
 import os
 

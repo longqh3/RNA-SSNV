@@ -10,12 +10,19 @@
 # --pred_label 1 \
 # --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.table
 
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+--Tag RNA_DNA_overlap \
+--output_type total_maf \
+--pred_label 0 \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_DNA_overlap.negative.table
+
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.DNA_coverage.table \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
 # --Tag RNA_only \
-# --pred_label 1 \
+# --pred_label 0 \
 # --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_only.table
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_only.negative.table
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
@@ -24,24 +31,53 @@
 # --output_type total_maf \
 # --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.table
 
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+# --Tag DNA_only \
+# --output_type total_maf \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.all.table
+
 python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
---result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.DNA_coverage.table \
 --Tag RNA_DNA_overlap RNA_only \
 --pred_label 1 \
 --output_type total_maf \
---output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_total.table
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_total.table
+
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.DNA_coverage.table \
+# --Tag RNA_DNA_overlap RNA_only \
+# --output_type total_maf \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.RNA_total.all.table
 
 # --pred_label 1 \
 # --Hugo_Symbol KMT2C \
 
-# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
-# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.table \
-# --Tag DNA_only \
-# --Sub_Tag force_called \
-# --output_type total_maf \
-# --output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
-# --Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
-# --cancer_type GBM
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.DNA_coverage.table \
+--Tag RNA_DNA_overlap RNA_only \
+--pred_label 1 \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.RNA_total.driver_gene.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type BLCA
+#
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.final.DNA_coverage.table \
+--Tag RNA_DNA_overlap RNA_only \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.RNA_total.driver_gene.all.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type GBM
+
+python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
+--result_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.final.DNA_coverage.table \
+--Tag DNA_only \
+--Sub_Tag force_called \
+--output_type total_maf \
+--output_info /home/lqh/Codes/Python/RNA-SSNV/output/GBM.DNA_only.driver_gene.table \
+--Intogen_database_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/gene/Compendium_Cancer_Genes.tsv \
+--cancer_type GBM
 #
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_extractor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.final.table \
