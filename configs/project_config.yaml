@@ -14,6 +14,13 @@ cancerType: BLCA
 # Available num of cores
 cores: 80
 
+# Softwares involved in our framework
+software:
+    # GATK-4.1.6.0
+    gatk: /home/lqh/Codes/Python/RNA-SSNV/software/GATK-4.1.6.0/gatk
+    # GATK-4.2.0.0
+    gatk_new: /home/lqh/Codes/Python/RNA-SSNV/software/GATK-4.2.0.0/gatk
+
 # Project-related sequencing data information
 samples: /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/BLCA_RNA_somatic_calling_info.tsv
 # Reference files for RNA-seq data co-cleaning and mutation calling

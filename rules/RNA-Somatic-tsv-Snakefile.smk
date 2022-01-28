@@ -44,12 +44,14 @@ rule mark_duplicates:
     output:
         bam = temp("marked_duplicates/{aliquots_id}.bam"),
         metric = temp("marked_duplicates/{aliquots_id}_marked_dup_metrics.txt")
+    params:
+        gatk = config["software"]['gatk']
     threads: 8
     log:
         "logs/mark_duplicates/{aliquots_id}.log"
     shell:
         """
-        gatk MarkDuplicates \
+        {params.gatk} MarkDuplicates \
         -I {input.bam} \
         -O {output.bam} \
         -M {output.metric} \
@@ -66,12 +68,14 @@ rule split_N_cigar_reads:
         ref = config["ref"]["genome"]
     output:
         bam = temp("splited_n_cigar_reads/{aliquots_id}.bam")
+    params:
+        gatk = config["software"]['gatk']
     threads: 4
     log:
         "logs/split_N_cigar_reads/{aliquots_id}.log"
     shell:
         """
-        gatk SplitNCigarReads \
+        {params.gatk} SplitNCigarReads \
         -I {input.bam} \
         -O {output.bam} \
         -R {input.ref}
@@ -87,12 +91,14 @@ rule base_reclibrate:
         kgINDEL = config["ref"]["variant"]["kgINDEL"]
     output:
         table = temp("base_reclibrate/{aliquots_id}.table")
+    params:
+        gatk = config["software"]['gatk']
     threads: 4
     log:
         "logs/base_reclibrate/{aliquots_id}.log"
     shell:
         """
-        gatk BaseRecalibrator \
+        {params.gatk} BaseRecalibrator \
         -I {input.bam} \
         -R {input.ref} \
         --known-sites {input.kgSNP} \
@@ -110,11 +116,13 @@ rule apply_BQSR:
     output:
         bam = protected("apply_BQSR/{aliquots_id}.bam")
     threads: 4
+    params:
+        gatk = config["software"]['gatk']
     log:
         "logs/apply_BQSR/{aliquots_id}.log"
     shell:
         """
-        gatk ApplyBQSR \
+        {params.gatk} ApplyBQSR \
         -R {input.ref} \
         -I {input.bam} \
         --bqsr-recal-file {input.table} \
@@ -141,6 +149,7 @@ rule Mutect2:
         vcf = protected("RNA_somatic_mutation/Mutect2_new/{case_id}.vcf.gz"),
         f1r2 = protected("RNA_somatic_mutation/Mutect2_new/{case_id}.f1r2.tar.gz"),
     params:
+        gatk = config["software"]['gatk_new'],
         tumor_bams = lambda wildcards : expand("-I apply_BQSR/{tumor_aliquots_id}.bam",
                                         tumor_aliquots_id = tumor_samples.loc[tumor_samples["case_id"]==wildcards.case_id, ].index),
         normal_bams = lambda wildcards : ["-I "+os.path.join(config["normalSampleDir"],normal_samples["file_id"][normal_aliquots_id],normal_samples["file_name"][normal_aliquots_id])
@@ -153,7 +162,7 @@ rule Mutect2:
         "logs/Mutect2_new/{case_id}.log"
     shell:
         """
-         /home/lqh/software/GATK-4.2.0.0/gatk Mutect2 \
+         {params.gatk} Mutect2 \
          -R {input.ref} \
          {params.tumor_bams} \
          {params.normal_bams} \
@@ -188,6 +197,7 @@ rule FilterMutectCalls_combined:
         read_orientation_model = "RNA_somatic_mutation/Mutect2_new/{case_id}.read-orientation-model.tar.gz",
         vcf = protected("RNA_somatic_mutation/FilterMutectCalls_new/{case_id}.vcf.gz")
     params:
+        gatk = config["software"]['gatk'],
         tumor_bams = lambda wildcards : ["apply_BQSR/%s.bam" % (tumor_aliquots_id) for tumor_aliquots_id in tumor_samples.loc[tumor_samples["case_id"]==wildcards.case_id, ].index]
     threads: 2
     log:
@@ -195,7 +205,7 @@ rule FilterMutectCalls_combined:
     run:
         commands = []
         # For Best Normal GetPileupSummaries
-        normal_GetPileupSummaries_command = f"gatk GetPileupSummaries -I {input.best_normal_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {output.best_normal_pileups_table}"
+        normal_GetPileupSummaries_command = f"{params.gatk} GetPileupSummaries -I {input.best_normal_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {output.best_normal_pileups_table}"
         commands.append(normal_GetPileupSummaries_command)
         # For --contamination-table info
         contamination_table = ""
@@ -204,11 +214,11 @@ rule FilterMutectCalls_combined:
         for tumor_bam in list(input.tumor_bams):
             print("\n"+tumor_bam)
             # For Tumor GetPileupSummaries
-            GetPileupSummaries_command = f"gatk GetPileupSummaries -I {tumor_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {tumor_bam}-pileups.table"
+            GetPileupSummaries_command = f"{params.gatk} GetPileupSummaries -I {tumor_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {tumor_bam}-pileups.table"
             print(GetPileupSummaries_command)
             commands.append(GetPileupSummaries_command)
             # For CalculateContaminations
-            CalculateContaminations_command = f"gatk CalculateContamination -I {tumor_bam}-pileups.table -matched {output.best_normal_pileups_table} -O {tumor_bam}-contamination.table --tumor-segmentation {tumor_bam}-segments.table"
+            CalculateContaminations_command = f"{params.gatk} CalculateContamination -I {tumor_bam}-pileups.table -matched {output.best_normal_pileups_table} -O {tumor_bam}-contamination.table --tumor-segmentation {tumor_bam}-segments.table"
             print(CalculateContaminations_command)
             commands.append(CalculateContaminations_command)
             # Add corresponding table info
@@ -216,11 +226,11 @@ rule FilterMutectCalls_combined:
             tumor_segmentation = tumor_segmentation + f" --tumor-segmentation {tumor_bam}-segments.table"
         print("--------------------------------------------------")
         # For LearnReadOrientationModel
-        LearnReadOrientationModel_command = f"gatk LearnReadOrientationModel -I {input.f1r2} -O {output.read_orientation_model}"
+        LearnReadOrientationModel_command = f"{params.gatk} LearnReadOrientationModel -I {input.f1r2} -O {output.read_orientation_model}"
         print(LearnReadOrientationModel_command)
         commands.append(LearnReadOrientationModel_command)
         # For FilterMutectCalls
-        FilterMutectCalls_command = f"gatk FilterMutectCalls -R {input.ref} -V {input.vcf} {contamination_table} {tumor_segmentation} --orientation-bias-artifact-priors {output.read_orientation_model} -O {output.vcf}"
+        FilterMutectCalls_command = f"{params.gatk} FilterMutectCalls -R {input.ref} -V {input.vcf} {contamination_table} {tumor_segmentation} --orientation-bias-artifact-priors {output.read_orientation_model} -O {output.vcf}"
         print(FilterMutectCalls_command)
         commands.append(FilterMutectCalls_command)
 
@@ -232,10 +242,12 @@ rule SelectVariants_SNP:
         vcf = "RNA_somatic_mutation/FilterMutectCalls_new/{case_id}.vcf.gz"
     output:
         vcf = "RNA_somatic_mutation/SelectVariants_new/SNP/{case_id}.vcf.gz"
+    params:
+        gatk = config["software"]['gatk']
     threads: 2
     shell:
         """
-        gatk SelectVariants \
+        {params.gatk} SelectVariants \
         --select-type-to-include SNP \
         -L chr1 -L chr2 -L chr3 -L chr4 -L chr5 -L chr6 -L chr7 -L chr8 -L chr9 -L chr10 -L chr11 -L chr12 -L chr13 -L chr14 -L chr15 -L chr16 -L chr17 -L chr18 -L chr19 -L chr20 -L chr21 -L chr22 -L chrX -L chrY \
         -V {input.vcf} \
@@ -250,11 +262,12 @@ rule Funcotator_SNP:
         maf = "RNA_somatic_mutation/Funcotator_new/SNP/{case_id}.maf"
     params:
         data_source = config["ref"]["annotation"]["gatk_funcotator"],
-        case_barcode = "{case_id}"
+        case_barcode = "{case_id}",
+        gatk = config["software"]['gatk']
     threads: 2
     shell:
         """
-        gatk Funcotator \
+        {params.gatk} Funcotator \
         -R {input.ref} \
         -V {input.vcf} \
         -O {output.maf} \
@@ -271,10 +284,12 @@ rule SelectVariants_SNP_WES_interval:
         target_interval = config["ref"]["targetInterval"]
     output:
         vcf = "RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval/{case_id}.vcf.gz"
+    params:
+        gatk = config["software"]['gatk']
     threads: 2
     shell:
         """
-        gatk SelectVariants \
+        {params.gatk} SelectVariants \
         -L {input.target_interval} \
         -V {input.vcf} \
         -O {output.vcf}
@@ -286,10 +301,12 @@ rule SelectVariants_SNP_WES_interval_exon:
         exon_interval = config["ref"]["exonInterval"]
     output:
         vcf = "RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval_exon/{case_id}.vcf.gz"
+    params:
+        gatk = config["software"]['gatk']
     threads: 2
     shell:
         """
-        gatk SelectVariants \
+        {params.gatk} SelectVariants \
         -L {input.exon_interval} \
         -V {input.vcf} \
         -O {output.vcf}
@@ -300,10 +317,12 @@ rule VariantsToTable_SNP_WES_interval_exon:
         vcf = "RNA_somatic_mutation/SelectVariants_new/SNP_WES_Interval_exon/{case_id}.vcf.gz"
     output:
         table = "RNA_somatic_mutation/VariantsToTable/SNP_WES_Interval_exon/{case_id}.table"
+    params:
+        gatk = config["software"]['gatk']
     threads: 1
     shell:
          """
-         gatk VariantsToTable \
+         {params.gatk} VariantsToTable \
          -V {input.vcf} \
          -F CHROM -F POS -F REF -F ALT \
          --show-filtered true \
