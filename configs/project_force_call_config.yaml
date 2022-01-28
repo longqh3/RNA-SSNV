@@ -1,14 +1,14 @@
 # Caution: all files and folders should be absolute path which require modifying according to your file system!!!
 
 # Directory of your co-cleaned DNA-seq data
-normalSampleDir: /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUSC
+normalSampleDir: /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUAD
 # Directory to store your temporary files
 tmpDir: /public1/tmp/lqh
 # Our framework's working directory: stores all generated folders and files, chooses it with caution (large storage volume)
 workDir: /home/lqh/Codes/Python/RNA-SSNV-github/results
 
 # Cancer type to analyze
-cancerType: LUSC
+cancerType: LUAD
 # Available num of cores
 cores: 80
 
