@@ -5,7 +5,7 @@ normalSampleDir: /public1/data/projects/tumor/multi/TCGA/raw/WXS/LUSC
 # Directory to store your temporary files
 tmpDir: /public1/tmp/lqh
 # Our framework's working directory: stores all generated folders and files, chooses it with caution (large storage volume)
-workDir: /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results
+workDir: /home/lqh/Codes/Python/RNA-SSNV-github/results
 
 # Cancer type to analyze
 cancerType: LUSC
@@ -15,9 +15,9 @@ cores: 80
 # Softwares involved in our framework
 software:
     # GATK-4.1.6.0
-    gatk: /home/lqh/Codes/Python/RNA-SSNV/software/GATK-4.1.6.0/gatk
+    gatk: /home/lqh/Codes/Python/RNA-SSNV-github/software/GATK-4.1.6.0/gatk
     # GATK-4.2.0.0
-    gatk_new: /home/lqh/Codes/Python/RNA-SSNV/software/GATK-4.2.0.0/gatk
+    gatk_new: /home/lqh/Codes/Python/RNA-SSNV-github/software/GATK-4.2.0.0/gatk
 
 # Project-related sequencing data information
 samples: /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUSC_RNA_somatic_calling_info.tsv

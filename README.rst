@@ -93,7 +93,7 @@ For the generated result, records with **pred_label** being 1 should be consider
 .. code:: sh
 
     # run model predicting codes
-    python /home/lqh/Codes/Python/RNA-SSNV/model_utilize.py \
+    python model_utilize.py \
     --REDIportal resources/REDIportal_main_table.hg38.bed \
     --DARNED resources/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
     --raw_RNA_mutations {your_specified_feature_table_path} \

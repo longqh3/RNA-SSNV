@@ -46,9 +46,11 @@ rule SortVcf:
         force_call_vcf = "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check/{case_id}.vcf"
     output:
         force_call_vcf_sorted = "RNA_somatic_mutation/MAFToVCF/DNA_only_RNA_missing_Mutect2_check_sorted/{case_id}.vcf"
+    params:
+        gatk = config["software"]['gatk']
     shell:
         """
-         gatk SortVcf \
+         {params.gatk} SortVcf \
          -I {input.force_call_vcf} \
          -O {output.force_call_vcf_sorted}
         """
@@ -75,6 +77,7 @@ rule Mutect2:
         f1r2 = protected("RNA_somatic_mutation/Mutect2_new_force_call/{case_id}.f1r2.tar.gz"),
         bam_out = protected("RNA_somatic_mutation/Mutect2_new_force_call/{case_id}.bamout.bam")
     params:
+        gatk = config["software"]['gatk_new'],
         tumor_bams = lambda wildcards : expand("-I apply_BQSR/{tumor_aliquots_id}.bam",
                                         tumor_aliquots_id = tumor_samples.loc[tumor_samples["case_id"]==wildcards.case_id, ].index),
         normal_bams = lambda wildcards : ["-I "+os.path.join(config["normalSampleDir"],normal_samples["file_id"][normal_aliquots_id],normal_samples["file_name"][normal_aliquots_id])
@@ -87,7 +90,7 @@ rule Mutect2:
         "logs/Mutect2_new/{case_id}.log"
     shell:
         """
-         /home/lqh/software/GATK-4.2.0.0/gatk Mutect2 \
+         {params.gatk} Mutect2 \
          -R {input.ref} \
          {params.tumor_bams} \
          {params.normal_bams} \
@@ -126,6 +129,7 @@ rule FilterMutectCalls_combined:
         read_orientation_model = "RNA_somatic_mutation/Mutect2_new_force_call/{case_id}.read-orientation-model.tar.gz",
         vcf = protected("RNA_somatic_mutation/FilterMutectCalls_new_force_call/{case_id}.vcf.gz")
     params:
+        gatk = config["software"]['gatk'],
         tumor_bams = lambda wildcards : ["apply_BQSR/%s.bam" % (tumor_aliquots_id) for tumor_aliquots_id in tumor_samples.loc[tumor_samples["case_id"]==wildcards.case_id, ].index]
     threads: 2
     log:
@@ -133,7 +137,7 @@ rule FilterMutectCalls_combined:
     run:
         commands = []
         # For Best Normal GetPileupSummaries
-        normal_GetPileupSummaries_command = f"gatk GetPileupSummaries -I {input.best_normal_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {output.best_normal_pileups_table}"
+        normal_GetPileupSummaries_command = f"{params.gatk} GetPileupSummaries -I {input.best_normal_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {output.best_normal_pileups_table}"
         commands.append(normal_GetPileupSummaries_command)
         # For --contamination-table info
         contamination_table = ""
@@ -142,11 +146,11 @@ rule FilterMutectCalls_combined:
         for tumor_bam in list(input.tumor_bams):
             print("\n"+tumor_bam)
             # For Tumor GetPileupSummaries
-            GetPileupSummaries_command = f"gatk GetPileupSummaries -I {tumor_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {tumor_bam}-pileups.table"
+            GetPileupSummaries_command = f"{params.gatk} GetPileupSummaries -I {tumor_bam} -L {input.gnomad_SNP} -V {input.gnomad_SNP} -O {tumor_bam}-pileups.table"
             print(GetPileupSummaries_command)
             commands.append(GetPileupSummaries_command)
             # For CalculateContaminations
-            CalculateContaminations_command = f"gatk CalculateContamination -I {tumor_bam}-pileups.table -matched {output.best_normal_pileups_table} -O {tumor_bam}-contamination.table --tumor-segmentation {tumor_bam}-segments.table"
+            CalculateContaminations_command = f"{params.gatk} CalculateContamination -I {tumor_bam}-pileups.table -matched {output.best_normal_pileups_table} -O {tumor_bam}-contamination.table --tumor-segmentation {tumor_bam}-segments.table"
             print(CalculateContaminations_command)
             commands.append(CalculateContaminations_command)
             # Add corresponding table info
@@ -158,7 +162,7 @@ rule FilterMutectCalls_combined:
         print(LearnReadOrientationModel_command)
         commands.append(LearnReadOrientationModel_command)
         # For FilterMutectCalls
-        FilterMutectCalls_command = f"gatk FilterMutectCalls -R {input.ref} -V {input.vcf} {contamination_table} {tumor_segmentation} --orientation-bias-artifact-priors {output.read_orientation_model} -O {output.vcf}"
+        FilterMutectCalls_command = f"{params.gatk} FilterMutectCalls -R {input.ref} -V {input.vcf} {contamination_table} {tumor_segmentation} --orientation-bias-artifact-priors {output.read_orientation_model} -O {output.vcf}"
         print(FilterMutectCalls_command)
         commands.append(FilterMutectCalls_command)
 
@@ -172,12 +176,13 @@ rule Funcotator:
     output:
         maf = "RNA_somatic_mutation/Funcotator_new_force_call/{case_id}.maf"
     params:
+        gatk = config["software"]['gatk'],
         data_source = config["ref"]["annotation"]["gatk_funcotator"],
         case_barcode = "{case_id}"
     threads: 2
     shell:
         """
-        gatk Funcotator \
+        {params.gatk} Funcotator \
         -R {input.ref} \
         -V {input.vcf} \
         -O {output.maf} \
