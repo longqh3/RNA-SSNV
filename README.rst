@@ -3,7 +3,7 @@ RNA-SSNV
 
 The RNA-SSNV is a scalable and efficient analysis method for RNA somatic mutation detection from RNA-WES (tumor-normal) paired sequencing data which utilized Mutect2 as core-caller and Multi-filtering strategy & Machine-learning based model to maximize precision & recall performance. It runs highly automated once related configs & infos get configurated properly. It reports an aggregated mutation file (standard maf format) to facilitate downstream analysis and clinical decision. 
 
-Important!!! This is the github repository storing **manual** and necessary codes for RNA-SSNV. The practical application was located within our `onedrive storage <https://github.com/broadinstitute/gatk/releases/download/4.1.6.0/gatk-4.1.6.0.zip>`_. 
+Important!!! This is the github repository storing **manual** and necessary codes for RNA-SSNV. The practical application was located within our `onedrive storage <https://mailsysueducn-my.sharepoint.com/:f:/g/personal/limiaoxin_mail_sysu_edu_cn/Eut19_SWV41IiUO93oMga0sBGlcb4oI7FdelfBB1sQFdzw?e=ud7lF2>`_.
 
 .. image:: ./media/Github_code_structure_low_resolution.png
    :alt: RNA-SSNV Framework
