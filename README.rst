@@ -125,6 +125,24 @@ Using **DNA evidence (mutations)** to generate RNA-omitted DNA mutations to forc
 
 DNA mutations' required columns (maf format): "Tumor_Sample_UUID", "Chromosome", "Start_Position", "Reference_Allele", "Tumor_Allele1", "Tumor_Allele2"
 
+.. list-table:: Demo DNA evidence (header-row required)
+    :widths: auto
+    :header-rows: 1
+    :align: center
+
+    * - Tumor_Sample_UUID
+      - Chromosome
+      - Start_Position
+      - Reference_Allele
+      - Tumor_Allele1
+      - Tumor_Allele2
+    * - TCGA-05-4244
+      - chr1
+      - 1543964
+      - T
+      - G
+      - T
+
 .. code:: sh
 
     python model_analyze_with_DNA.py \
