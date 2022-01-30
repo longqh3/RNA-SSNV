@@ -41,12 +41,12 @@ Modify config & table file
       - ID of corresponding patient's case
       - Type of aliquot's origin. Be ware, tumor sample should be "Primary Tumor", paired-normal sample should be "Solid Tissue Normal" or "Blood Derived Normal". "Best Normal" sample **must** be included to support multi-sample calling. 
 
-- *configs/project_config.yaml*: pipeline-related configurations, modify it accordingly. 
+- *configs/project_config.yaml*: general framework-related configurations, modify it accordingly. 
 
 Run Framework
 ~~~~~~~~~~~~~~~
 
-Once configurated correctly, our pipeline is ready to go. Please execute the following commands step by step, make sure everything works smoothly before moving forward. 
+Once configurated correctly, our framework is ready to go. Please execute the following commands step by step, make sure everything works smoothly before moving forward. 
 
 Call and annotate raw RNA somatic mutations
 -----------------------------------------------
@@ -164,7 +164,7 @@ Step 1.1: Force calling all DNA only mutations and extract features
 
 Modify config file for force-calling process
 
-- *configs/project_force_call_config.yaml*: pipeline-related configurations, modify it accordingly. 
+- *configs/project_force_call_config.yaml*: framework-related configurations for force-calling, modify it accordingly. 
 
 Afterwards, run commands sequencially to conduct force-calling of Mutect2 to query RNA coverage, allele depths for DNA only mutations.
 
@@ -255,12 +255,12 @@ Train customized model
 Utilize customized model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Back to the beginning of our pipeline, edit the **model** absolute path, start our framework and good to go!
+- Back to the beginning of our framework, edit the **model** absolute path, start our framework and good to go!
 
 Output folders & files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The pipeline outputs several folders containing intermediate files and **final** project-level mutations annotation file (following standard maf format). Here, we detailly describe the `results/` folder's schema. 
+Our framework outputs several folders containing intermediate files and **final** project-level mutations annotation file (following standard maf format). Here, we detailly describe the `results/` folder's schema. 
 
 Sequencing data pre-process
 ------------------------------
@@ -280,7 +280,7 @@ Calling process - called RNA somatic mutation
 - *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval*: permanent folder containing raw RNA SNP calls subsetted via given WES target intervals. 
 - *results/project_name/RNA/RNA_somatic_mutation/SelectVariants/SNP_WES_interval_exon*: permanent folder containing **final** raw RNA SNP calls subsetted by given WES target intervals and exon regions**.
 
-Pipeline explaination
+Framework explaination
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Essential codes
