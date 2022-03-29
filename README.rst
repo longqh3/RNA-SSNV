@@ -102,6 +102,34 @@ For the generated result, records with **pred_label** being 1 should be consider
     --training_columns_path model/exon_RNA_analysis_newer.training_data_col \
     --output_table_path {your_specified_predicted_table_path}
 
+Visualize contribution of important features using SHAP library 
+--------------------------------------------------------------------------
+
+To inspect the feature contribution of **single prediction**, predicted table path and row-index of the prediction record were required. A svg format image containing feature contribution will be generated. 
+
+.. code:: sh
+
+    python lib/result_explainer.py \
+    --explain_type datarow \
+    --data_info {your_specified_predicted_table_path} \
+    --model_path model/exon_RNA_analysis_newer.model \
+    --one_hot_encoder_path model/exon_RNA_analysis_newer.one_hot_encoder \
+    --training_columns_path model/exon_RNA_analysis_newer.training_data_col \
+    --explain_plot_path {your_specified_feature_contribution_svg_image_path} \
+    --explain_row_index {row_index}
+
+To inspect the feature contribution of **multiple predictions**, only predicted table path was required. A svg format image containing feature contribution will be generated. 
+
+.. code:: sh
+
+    python lib/result_explainer.py \
+    --explain_type dataset \
+    --data_info {your_specified_predicted_table_path} \
+    --model_path model/exon_RNA_analysis_newer.model \
+    --one_hot_encoder_path model/exon_RNA_analysis_newer.one_hot_encoder \
+    --training_columns_path model/exon_RNA_analysis_newer.training_data_col \
+    --explain_plot_path {your_specified_feature_contribution_svg_image_path}
+
 Pairwise analysis for DNA and RNA somatic mutations (only do it with DNA evidence)
 ----------------------------------------------------------------------------------------
 
