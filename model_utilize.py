@@ -3,11 +3,11 @@
 # python /home/lqh/Codes/Python/RNA-SSNV/model_utilize.py \
 # --REDIportal /home/lqh/resources/database/RNA_edit/REDIportal/REDIportal_main_table.hg38.bed \
 # --DARNED /home/lqh/resources/database/RNA_edit/DARNED_hg19_to_bed_to_hg38_rm_alt.bed \
-# --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
+# --raw_RNA_mutations /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
 # --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
 # --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
 # --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
-# --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/GBM.table
+# --output_table_path /home/lqh/Codes/Python/RNA-SSNV/output/LUAD.table
 
 # Basic packages
 import pandas as pd     #导入python的一个数据分析包pandas

@@ -4,10 +4,10 @@
 # --edit_type oncoKB \
 # --output_info /home/lqh/Codes/Python/RNA-SSNV/data/therapeutic/GBM.RNA_DNA_overlap.driver_gene.maf
 #
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_editor.py \
---result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.driver_gene.table \
---edit_type oncoKB \
---output_info /home/lqh/Codes/Python/RNA-SSNV/data/therapeutic/BLCA.DNA_only.driver_gene.maf
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_editor.py \
+# --result_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.DNA_only.driver_gene.table \
+# --edit_type oncoKB \
+# --output_info /home/lqh/Codes/Python/RNA-SSNV/data/therapeutic/BLCA.DNA_only.driver_gene.maf
 #
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_editor.py \
 # --result_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_only.driver_gene.table \

@@ -9,11 +9,11 @@
 
 # 检查通过，无重复位点输出+突变碱基包含multi-allelic情况
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/force_call_data_vcf_info_retriver.py \
-# --cancer_type GBM \
-# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/GBM_RNA_somatic_calling_info.tsv \
+# --cancer_type LUAD \
+# --RNA_calling_info /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/tables/info/LUAD_RNA_somatic_calling_info.tsv \
 # --project_folder /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results \
 # --exon_interval /home/lqh/resources/database/gencode/GRCh38_GENCODE_v22_exon_rm_alt.bed \
-# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
+# --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/LUAD/RNA/RNA_somatic_mutation/VcfAssembly_new/Mutect2_force_call.txt \
 # --num_threads 64
 
 import vcf

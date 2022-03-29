@@ -7,14 +7,14 @@
 # --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
 # --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.LUAD.svg
 
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
---explain_type datarow \
---data_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.RNA_DNA_overlap.negative.table \
---model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
---one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
---training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
---explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.BLCA.1027.svg \
---explain_row_index 1027
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
+# --explain_type datarow \
+# --data_info /home/lqh/Codes/Python/RNA-SSNV/output/BLCA.RNA_DNA_overlap.negative.table \
+# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
+# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
+# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
+# --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.BLCA.1027.svg \
+# --explain_row_index 1027
 
 # python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
 # --explain_type model \
@@ -25,13 +25,13 @@ python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
 # --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/fig.3.LUAD.top5.svg \
 # --specified_features STRANDQ AF_tumor TLOD ROQ ECNT
 
-python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
---explain_type dataset \
---data_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.negative.table \
---model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
---one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
---training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
---explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/supplement_fig.4.LUSC.RNA_DNA_overlap.negative.svg
+# python /home/lqh/Codes/Python/RNA-SSNV/lib/result_explainer.py \
+# --explain_type dataset \
+# --data_info /home/lqh/Codes/Python/RNA-SSNV/output/LUSC.RNA_DNA_overlap.negative.table \
+# --model_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.model \
+# --one_hot_encoder_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.one_hot_encoder \
+# --training_columns_path /home/lqh/Codes/Python/RNA-SSNV/model/exon_RNA_analysis.training_data_col \
+# --explain_plot_path /home/lqh/Codes/Python/RNA-SSNV/results/supplement_fig.4.LUSC.RNA_DNA_overlap.negative.svg
 
 import pandas as pd
 import shap
