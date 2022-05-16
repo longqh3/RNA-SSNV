@@ -254,7 +254,7 @@ Although we used 511 cases of TCGA LUAD RNA-WES paired data to train our discrim
 Data-preparation
 ^^^^^^^^^^^^^^^^^^^
 
-- Make sure all RNA somatic mutations with in your project got called and annotated using our `Call and annotate raw RNA somatic mutations <https://github.com/pmglab/RNA-SSNV#call-and-annotate-raw-rna-somatic-mutations>`_ commands
+- Make sure all RNA somatic mutations within your project got called and annotated using our `Call and annotate raw RNA somatic mutations <https://github.com/pmglab/RNA-SSNV#call-and-annotate-raw-rna-somatic-mutations>`_ commands
 
 - Gold-standard TP mutations for your project (maf-format) with required five columns: "Chromosome", "Start_Position", "Tumor_Allele2", "Tumor_Allele1", "Tumor_Sample_UUID"
 
