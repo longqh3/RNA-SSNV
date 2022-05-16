@@ -258,8 +258,8 @@ Data-preparation
 
 - Gold-standard TP mutations for your project (maf-format) with required five columns: "Chromosome", "Start_Position", "Tumor_Allele2", "Tumor_Allele1", "Tumor_Sample_UUID"
 
-    - Tumor_Allele2: Same as reference allele
-    - Tumor_Allele1: Same as alternative allele
+    - Tumor_Allele2: Same as the reference allele
+    - Tumor_Allele1: Same as the alternative allele
 
 Train customized model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
