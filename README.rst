@@ -37,9 +37,9 @@ Modify config & table file
       - sample_type
     * - Name of bam file
       - Name of specific folder which contains bam file
-      - ID of aliquot sequenced
+      - ID of aliquot sequenced (must be unique to the specific bam file)
       - ID of corresponding patient's case
-      - Type of aliquot's origin. Be ware, tumor sample should be "Primary Tumor", paired-normal sample should be "Solid Tissue Normal" or "Blood Derived Normal". "Best Normal" sample **must** be included to support multi-sample calling. 
+      - Type of aliquot's origin. Be ware, tumor sample should be "Primary Tumor", paired-normal sample should be "Solid Tissue Normal" or "Blood Derived Normal". And the "Best Normal" sample **must** be chose and included to support multi-sample calling. 
 
 - *configs/project_config.yaml*: general framework-related configurations, modify it accordingly. 
 
@@ -55,7 +55,7 @@ We assume that available RNA&DNA sequence data for common users were **aligned**
 
 .. code:: sh
     
-    # dry run to see if the mutation calling pipeline works properly
+    # make sure to conduct dry running to see if the mutation calling pipeline will work as expected
     snakemake --cores {num_of_cores} \
     -ns rules/RNA-Somatic-tsv-Snakefile.smk \
     --configfile configs/project_RNA_Somatic_config.yaml
