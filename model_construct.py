@@ -291,7 +291,6 @@ class exon_RNA_analysis(object):
 
         self.all_info['Attribute'] = self.all_info['Attribute'].map({'TP': 1, 'TN': 0})
         self.all_info['Attribute'] = self.all_info['Attribute'].astype('category')
-        # self.all_info = self.all_info.fillna({"Expression_TPM": 0, "COSMIC_total_alterations_in_gene": 0})  # fill na
         self.training_data = self.all_info.drop(DROP_COLUMNS, axis=1)  # drop un-necessary columns and get X
         print("Check NA count for each column, result listed below: \n")
         print(self.training_data.isna().sum())
@@ -343,8 +342,6 @@ class exon_RNA_analysis(object):
         plt.savefig(os.path.join(args.model_folder_path, "feature_selection_performance.svg"))
 
         print("Convert training and testing dataset.")
-        # self.X_train = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_train), columns = self.selected_columns)
-        # self.X_holdout = pd.DataFrame(self.RFE_feature_select_select.transform(self.X_holdout), columns = self.selected_columns)
         self.X_train = self.RFE_feature_select_select.transform(self.X_train)
         self.X_holdout = self.RFE_feature_select_select.transform(self.X_holdout)
 

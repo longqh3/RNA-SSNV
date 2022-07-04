@@ -7,14 +7,14 @@
 # --output_table_path /home/lqh/Codes/Python/Integrative_Analysis_Bioinformatics_Pipeline/results/GBM/RNA/RNA_somatic_mutation/VcfAssembly_new/SNP_WES_Interval_exon.txt \
 # --num_threads 80
 
+# 2021.1.4更新：从特征矩阵中删除表达量（TPM）相关特征信息，因并非所有数据都有输入的TPM信息
+# 2021.4.8更新：添加record_filter列，保存突变位点相关filter信息，用以评估有多少filter过滤的record被rescue回来
+
 # 特征提取核心代码
 # 提取待分析的文件夹内所有突变vcf文件中的所有位点
 # 以文件为单位，获取每个case中的所有位点信息 + 30 features取值
 # 将所获取的多个特征文件保存于指定文件夹中
 # 最后将文件夹内所有特征文件（所有case）纵向合并，得到最终的训练集、测试集、验证集
-
-# 2021.1.4更新：从特征矩阵中删除表达量（TPM）相关特征信息，因并非所有数据都有输入的TPM信息
-# 2021.4.8更新：添加record_filter列，保存突变位点相关filter信息，用以评估有多少filter过滤的record被rescue回来
 
 import vcf
 import pandas as pd
@@ -146,7 +146,7 @@ def case_vcf_info_retrive(tumor_tsv, case_id, vcf_folder_path, table_folder_path
         print("case_vcf_info_retrive function had failed!!!")
         print(f"其对应case信息为{case_id}")
 
-# 其实这里也是偷懒，为了避免不同特征间合并起来的困难而在一个函数中进行
+# 为了避免不同特征间合并起来的困难而在一个函数中进行
 # 选择vcf文件中单个record内RNA肿瘤样本var最大AD、正常样本ref最大AD
 # 同时选择DNA肿瘤样本var、ref最大AD和exon-distance来作为feature，共同组成dataframe
 def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id, exon_region_dict):
@@ -193,25 +193,6 @@ def record_select(record, case_id, RNA_tumor_aliquots_id, DNA_normal_aliquots_id
         record_filter = "PASS" if record.FILTER==[] else ",".join(record.FILTER)
 
         # 根据获得的最大AD对应aliquots_id信息，来完成相应dataframe组成元素的构建
-        # related column names
-        # col_names = ['Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele1',
-        #              'Tumor_Allele2', 'Tumor_Sample_UUID',
-        #              'CONTQ', 'DP', 'ECNT', 'GERMQ',
-        #              'MBQ_ref', 'MBQ_alt',
-        #              'MFRL_ref', 'MFRL_alt',
-        #              'MMQ_ref', 'MMQ_alt',
-        #              'MPOS', 'NALOD', 'NLOD', 'POPAF', 'SEQQ', 'STRANDQ', 'TLOD',
-        #              'ref_AD_tumor_RNA', 'alt_AD_tumor_RNA',
-        #              'ref_AD_normal', 'alt_AD_normal',
-        #              'AF_tumor', 'AF_normal',
-        #              'DP_tumor', 'DP_normal',
-        #              'F1R2_tumor', 'F1R2_normal',
-        #              'F2R1_tumor', 'F2R1_normal',
-        #              'AD_other_RNA_tumor', 'AD_other_normal',
-        #              'transcript_ID', 'exon_distance',
-        #              'record_filter',
-        #              "FS",
-        #              "SOR", "ROQ"]
         tmp_vcf_info = [record.CHROM, record.POS, record.REF, ",".join([str(alt) for alt in record.ALT]),
                         record.REF, case_id,
                         record.INFO['CONTQ'], record.INFO['DP'], record.INFO['ECNT'], record.INFO['GERMQ'],

@@ -181,7 +181,6 @@ rule Mutect2:
 # 并将相应contamination-table、tumor-segmentation信息纳入变量中保存
 # 而后执行LearnReadOrientationModel来获取read_orientation_model信息
 # 最后应用上述所有信息，共同完成单case的FilterMutectCalls操作，得到经过过滤的vcf文件信息
-# takes
 # cores 2
 rule FilterMutectCalls_combined:
     input:

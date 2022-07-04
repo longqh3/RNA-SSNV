@@ -277,7 +277,6 @@ class exon_RNA_analysis_newer(object):
 
         self.all_info['Attribute'] = self.all_info['Attribute'].map({'TP': 1, 'TN': 0})
         self.all_info['Attribute'] = self.all_info['Attribute'].astype('category')
-        # self.all_info = self.all_info.fillna({"Expression_TPM": 0, "COSMIC_total_alterations_in_gene": 0})  # fill na
         self.training_data = self.all_info.drop(DROP_COLUMNS, axis=1)
         print("Check NA count for each column, result listed below: \n")
         print(self.training_data.isna().sum())
