@@ -335,3 +335,8 @@ Resource files
 
 - *resources/whole_exome_agilent_1.1_refseq_plus_3_boosters.targetIntervals_add_chr_to_hg38_rm_alt.bed*: bed-format interval file for paired-normal Whole Exome Sequence(WES) targets. (canonical for TCGA projects)
 - *resources/GRCh38_GENCODE_v22_exon_rm_alt.bed*: bed-format interval file for GENCODE v22 exon regions. 
+
+Publication
+~~~~~~~~~~~~~~
+
+Long, Q., Yuan, Y., Li, M. (2022). RNA-SSNV: A reliable somatic single nucleotide variant identification framework for bulk RNA-Seq data. *Frontiers in Genetics.*
